@@ -4,6 +4,8 @@
 #include "MultiplayerCharacter.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
+
 
 AMultiplayerCharacter::AMultiplayerCharacter()
 {
@@ -20,6 +22,8 @@ AMultiplayerCharacter::AMultiplayerCharacter()
 	Camera->SetupAttachment(SpringArm, USpringArmComponent::SocketName);
 	Camera->bUsePawnControlRotation = false;
 
+	bUseControllerRotationYaw = false;
+	GetCharacterMovement()->bOrientRotationToMovement = true;
 
 }
 
