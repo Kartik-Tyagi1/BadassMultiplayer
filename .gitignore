@@ -1,16 +1,25 @@
+# No Content files
+Content/__ExternalActors__
+Content/__ExternalObjects__
+Content/Collections
+Content/Developers
+Content/LevelPrototyping
+Content/LearningKit_Robots
+**/MilitaryWeapSilver
+**/AnimStarterPack
+**/Mixamo
+**/Animations
+**/LearningKit_Games
+
+# No Unreal Generated Files
 Binaries
 DerivedDataCache
 Intermediate
 Saved
 Build
 Builds
-Content/__ExternalActors__
-Content/__ExternalObjects__
-Content/Characters
-Content/Collections
-Content/Developers
-Content/LevelPrototyping
-Content/ThirdPerson
+
+# No IDE/Workspace Files
 .vscode
 .vs
 *.VC.db
