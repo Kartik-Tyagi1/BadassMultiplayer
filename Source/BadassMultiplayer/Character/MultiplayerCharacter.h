@@ -18,6 +18,9 @@ public:
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	/* Registers which variables are to be replicated across the game instances */
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -36,6 +39,27 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	class UWidgetComponent* OverheadWidget;
 
+	/* 
+	* Designate Overlapping Weapon to be an actor that gets relpicated across all instances of the game.
+	* 
+	* NOTE: Replication only happens one way (Server ----> Client)
+	* 
+	* When the value of OverlappingWeapon changes on the server
+	*	- only then it will replicate ( aka set on all clients of the MultiplayerCharacter)
+	*	- only then will OnRep_OverlappingWeapon be called
+	*/
+	UPROPERTY(ReplicatedUsing = OnRep_OverlappingWeapon)
+	class AWeapon* OverlappingWeapon;
+
+	/* 
+	* Called automatically when the value of the OverlappingWeapon Changes
+	* ----- WILL NOT BE CALLED ON THE SERVER. SO IT WON'T BE REPLICATED THERE -------
+	* Notifies can have an input parameter of the type that is it notifying about and that parameter stores the last value of that variable it before is changed
+	*/
+	UFUNCTION()
+	void OnRep_OverlappingWeapon(AWeapon* LastWeapon);
+
 public:
+	void SetOverlappingWeapon(AWeapon* Weapon);
 
 };

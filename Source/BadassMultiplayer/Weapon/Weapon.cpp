@@ -37,12 +37,13 @@ void AWeapon::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (HasAuthority())
+	if (HasAuthority()) // Check to make sure all of this code happens on the server
 	{
-		// If the version of the weapon is on the serever then enable collision to overlap with the player characters
+		// Enable collision to overlap with the player characters
 		AreaSphere->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 		AreaSphere->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
 		AreaSphere->OnComponentBeginOverlap.AddDynamic(this, &ThisClass::OnAreaSphereOverlap);
+		AreaSphere->OnComponentEndOverlap.AddDynamic(this, &ThisClass::OnAreaSphereEndOverlap);
 	}
 
 	if (PickupWidget)
@@ -58,18 +59,32 @@ void AWeapon::Tick(float DeltaTime)
 
 }
 
-void AWeapon::OnAreaSphereOverlap(
-	UPrimitiveComponent* OverlappedComponent,
-	AActor* OtherActor,
-	UPrimitiveComponent* OtherComp,
-	int32 OtherBodyIndex,
-	bool bFromSweep,
-	const FHitResult& SweepResult)
+
+void AWeapon::OnAreaSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	AMultiplayerCharacter* MultiplayerCharacter = Cast<AMultiplayerCharacter>(OtherActor);
-	if (MultiplayerCharacter && PickupWidget)
+	if (MultiplayerCharacter)
 	{
-		PickupWidget->SetVisibility(true);
+		// On overalp the OverlappingWeapon will be set which starts its replication
+		MultiplayerCharacter->SetOverlappingWeapon(this);
+	}
+}
+
+void AWeapon::OnAreaSphereEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	AMultiplayerCharacter* MultiplayerCharacter = Cast<AMultiplayerCharacter>(OtherActor);
+	if (MultiplayerCharacter)
+	{
+		// No longer overlapping so set OverlappingWeapon to null
+		MultiplayerCharacter->SetOverlappingWeapon(nullptr);
+	}
+}
+
+void AWeapon::ShowPickupWidget(bool bShowWidget)
+{
+	if (PickupWidget)
+	{
+		PickupWidget->SetVisibility(bShowWidget);
 	}
 }
 
