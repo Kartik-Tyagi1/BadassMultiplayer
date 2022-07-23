@@ -40,7 +40,7 @@ private:
 	class UWidgetComponent* OverheadWidget;
 
 	/* 
-	* Designate Overlapping Weapon to be an actor that gets relpicated across all instances of the game.
+	* The UPROPERTY Designates Overlapping Weapon to be an actor that gets relpicated across all instances (clients) of the game.
 	* 
 	* NOTE: Replication only happens one way (Server ----> Client)
 	* 
