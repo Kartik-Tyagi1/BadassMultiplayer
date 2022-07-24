@@ -28,6 +28,10 @@ class BADASSMULTIPLAYER_API AWeapon : public AActor
 public:	
 	AWeapon();
 	virtual void Tick(float DeltaTime) override;
+
+	/* Registers which variables are to be replicated across the game instances */
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
 	void ShowPickupWidget(bool bShowWidget);
 
 protected:
@@ -59,11 +63,15 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = "WeaponProperties")
 	UWidgetComponent* PickupWidget;
 
-	UPROPERTY(VisibleAnywhere, Category = "WeaponProperties")
+	UPROPERTY(ReplicatedUsing = OnRep_WeaponState, VisibleAnywhere, Category = "WeaponProperties")
 	EWeaponState WeaponState;
 
+	UFUNCTION()
+	void OnRep_WeaponState();
+
 public:	
-	FORCEINLINE void SetWeaponState(EWeaponState State) { WeaponState = State; }
+	void SetWeaponState(EWeaponState State);
+
 
 	
 

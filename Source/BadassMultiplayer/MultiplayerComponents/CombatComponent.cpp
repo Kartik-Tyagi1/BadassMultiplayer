@@ -36,7 +36,7 @@ void UCombatComponent::EquipWeapon(AWeapon* WeaponToEquip)
 		RightHandSocket->AttachActor(EquippedWeapon, Character->GetMesh());
 	}
 
+	// The Owner is a built in replicated variable. So when we change the owner, it will be replicated across clients
 	EquippedWeapon->SetOwner(Character);
-	EquippedWeapon->ShowPickupWidget(false);
 }
 

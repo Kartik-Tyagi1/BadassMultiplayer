@@ -180,7 +180,23 @@ void AMultiplayerCharacter::OnRep_OverlappingWeapon(AWeapon* LastWeapon)
 void AMultiplayerCharacter::EquipButtonPressed()
 {
 	// Weapon Equipping should be handled by server so that a proper record of the game is kept
-	if (Combat && HasAuthority())
+	if (Combat)
+	{
+		if (HasAuthority())
+		{
+			Combat->EquipWeapon(OverlappingWeapon);
+		}
+		else
+		{
+			// Called for clients
+			ServerEquipButtonPressed();
+		}
+	}
+}
+
+void AMultiplayerCharacter::ServerEquipButtonPressed_Implementation()
+{
+	if (Combat)
 	{
 		Combat->EquipWeapon(OverlappingWeapon);
 	}

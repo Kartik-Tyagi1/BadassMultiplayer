@@ -5,6 +5,7 @@
 #include "Components/SphereComponent.h"
 #include "Components/WidgetComponent.h"
 #include "BadassMultiplayer/Character/MultiplayerCharacter.h"
+#include "Net/UnrealNetwork.h"
 
 
 AWeapon::AWeapon():
@@ -61,6 +62,15 @@ void AWeapon::Tick(float DeltaTime)
 }
 
 
+void AWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	// Although we set the bReplicates on the AWeapon Constructor to true, if we can to replicate specific variables as well we need to specify them here
+	DOREPLIFETIME_CONDITION(AWeapon, WeaponState, COND_OwnerOnly);
+}
+
+
 void AWeapon::OnAreaSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	AMultiplayerCharacter* MultiplayerCharacter = Cast<AMultiplayerCharacter>(OtherActor);
@@ -80,6 +90,31 @@ void AWeapon::OnAreaSphereEndOverlap(UPrimitiveComponent* OverlappedComponent, A
 		MultiplayerCharacter->SetOverlappingWeapon(nullptr);
 	}
 }
+
+void AWeapon::OnRep_WeaponState()
+{
+	switch (WeaponState)
+	{
+	case EWeaponState::EWS_Equipped:
+		ShowPickupWidget(false); // Propogate hiding pickup widget to all clients
+		break;
+	}
+}
+
+void AWeapon::SetWeaponState(EWeaponState State)
+{
+	WeaponState = State;
+
+	// Modify weapon variables on the server, which will propogate to clients regularly
+	switch (WeaponState)
+	{
+	case EWeaponState::EWS_Equipped:
+		ShowPickupWidget(false);
+		AreaSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		break;
+	}
+}
+
 
 void AWeapon::ShowPickupWidget(bool bShowWidget)
 {

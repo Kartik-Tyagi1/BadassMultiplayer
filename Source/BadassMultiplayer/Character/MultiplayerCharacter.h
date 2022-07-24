@@ -73,6 +73,16 @@ private:
 	UPROPERTY(VisibleAnywhere)
 	UCombatComponent* Combat;
 
+	/*
+	*	EquipButtonPressed only allows the server controller to equip a weapon but if clients want to then they need to send a request to the server
+	*	We will use a Remote Procedure Call. This is a function that sends infomation from the client to the server to let it request information
+	*	To do this we make a function with the UFUNCTION(Server, Reliable) Macro
+	*	Server -> This designates this function to be called only from clients to the server
+	*	Reliable -> Client is guaranteed to recieve confirmation after request is sent to the server (can also be unreliable meaning request can be dropped) 
+	*/
+	UFUNCTION(Server, Reliable)
+	void ServerEquipButtonPressed();
+
 public:
 	void SetOverlappingWeapon(AWeapon* Weapon);
 
