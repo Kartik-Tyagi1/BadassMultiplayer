@@ -6,6 +6,12 @@
 #include "GameFramework/Character.h"
 #include "MultiplayerCharacter.generated.h"
 
+class UCameraComponent;
+class USpringArmComponent;
+class UWidgetComponent;
+class AWeapon;
+class UCombatComponent;
+
 UCLASS()
 class BADASSMULTIPLAYER_API AMultiplayerCharacter : public ACharacter
 {
@@ -21,6 +27,9 @@ public:
 	/* Registers which variables are to be replicated across the game instances */
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
+	/* Earliest place that allow us to access components attached to this character and set values */
+	virtual void PostInitializeComponents() override;
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -29,15 +38,17 @@ protected:
 	void Turn(float Value);
 	void LookUp(float Value);
 
+	void EquipButtonPressed();
+
 private:
 	UPROPERTY(VisibleAnywhere, Category = Camera, meta = (AllowPrivateAccess = "true"))
-	class UCameraComponent* Camera;
+	UCameraComponent* Camera;
 
 	UPROPERTY(VisibleAnywhere, Category = Camera, meta = (AllowPrivateAccess = "true"))
-	class USpringArmComponent* SpringArm;
+	USpringArmComponent* SpringArm;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	class UWidgetComponent* OverheadWidget;
+	UWidgetComponent* OverheadWidget;
 
 	/* 
 	* The UPROPERTY Designates Overlapping Weapon to be an actor that gets relpicated across all instances (clients) of the game.
@@ -49,7 +60,7 @@ private:
 	*	- only then will OnRep_OverlappingWeapon be called
 	*/
 	UPROPERTY(ReplicatedUsing = OnRep_OverlappingWeapon)
-	class AWeapon* OverlappingWeapon;
+	AWeapon* OverlappingWeapon;
 
 	/* 
 	* Called automatically when the value of the OverlappingWeapon Changes
@@ -58,6 +69,9 @@ private:
 	*/
 	UFUNCTION()
 	void OnRep_OverlappingWeapon(AWeapon* LastWeapon);
+
+	UPROPERTY(VisibleAnywhere)
+	UCombatComponent* Combat;
 
 public:
 	void SetOverlappingWeapon(AWeapon* Weapon);

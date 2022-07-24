@@ -6,6 +6,10 @@
 #include "GameFramework/Actor.h"
 #include "Weapon.generated.h"
 
+class USkeletalMeshComponent;
+class USphereComponent;
+class UWidgetComponent;
+
 UENUM(BlueprintType)
 enum class EWeaponState : uint8
 {
@@ -47,19 +51,19 @@ protected:
 
 private:
 	UPROPERTY(VisibleAnywhere, Category = "WeaponProperties")
-	class USkeletalMeshComponent* WeaponMesh;
+	USkeletalMeshComponent* WeaponMesh;
 
 	UPROPERTY(VisibleAnywhere, Category = "WeaponProperties")
-	class USphereComponent* AreaSphere;
+	USphereComponent* AreaSphere;
 
 	UPROPERTY(VisibleAnywhere, Category = "WeaponProperties")
-	class UWidgetComponent* PickupWidget;
+	UWidgetComponent* PickupWidget;
 
 	UPROPERTY(VisibleAnywhere, Category = "WeaponProperties")
 	EWeaponState WeaponState;
 
-
 public:	
+	FORCEINLINE void SetWeaponState(EWeaponState State) { WeaponState = State; }
 
 	
 

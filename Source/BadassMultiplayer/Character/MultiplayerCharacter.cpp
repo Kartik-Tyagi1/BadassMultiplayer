@@ -8,6 +8,7 @@
 #include "Components/WidgetComponent.h"
 #include "Net/UnrealNetwork.h"
 #include "BadassMultiplayer/Weapon/Weapon.h"
+#include "BadassMultiplayer/MultiplayerComponents/CombatComponent.h"
 
 
 AMultiplayerCharacter::AMultiplayerCharacter()
@@ -31,6 +32,9 @@ AMultiplayerCharacter::AMultiplayerCharacter()
 	OverheadWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("OverheadWidget"));
 	OverheadWidget->SetupAttachment(RootComponent);
 
+	Combat = CreateDefaultSubobject<UCombatComponent>(TEXT("CombatComponent"));
+	// No need to register components since they are special and get replicated themselves
+	Combat->SetIsReplicated(true);
 }
 
 void AMultiplayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -58,6 +62,17 @@ void AMultiplayerCharacter::BeginPlay()
 	
 }
 
+void AMultiplayerCharacter::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+
+	// Set value of the character on the combat component asap so we don't crash
+	if (Combat)
+	{
+		Combat->Character = this;
+	}
+}
+
 void AMultiplayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
@@ -69,6 +84,7 @@ void AMultiplayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInp
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
+	PlayerInputComponent->BindAction("Equip", IE_Pressed, this, &ThisClass::EquipButtonPressed);
 
 	PlayerInputComponent->BindAxis("MoveForward", this, &ThisClass::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &ThisClass::MoveRight);
@@ -106,6 +122,7 @@ void AMultiplayerCharacter::LookUp(float Value)
 {
 	AddControllerPitchInput(Value);
 }
+
 
 void AMultiplayerCharacter::SetOverlappingWeapon(AWeapon* Weapon)
 {
@@ -157,6 +174,15 @@ void AMultiplayerCharacter::OnRep_OverlappingWeapon(AWeapon* LastWeapon)
 	if (LastWeapon)
 	{
 		LastWeapon->ShowPickupWidget(false);
+	}
+}
+
+void AMultiplayerCharacter::EquipButtonPressed()
+{
+	// Weapon Equipping should be handled by server so that a proper record of the game is kept
+	if (Combat && HasAuthority())
+	{
+		Combat->EquipWeapon(OverlappingWeapon);
 	}
 }
 

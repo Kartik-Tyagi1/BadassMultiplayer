@@ -7,7 +7,8 @@
 #include "BadassMultiplayer/Character/MultiplayerCharacter.h"
 
 
-AWeapon::AWeapon()
+AWeapon::AWeapon():
+	WeaponState(EWeaponState::EWS_Initial)
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = false;
