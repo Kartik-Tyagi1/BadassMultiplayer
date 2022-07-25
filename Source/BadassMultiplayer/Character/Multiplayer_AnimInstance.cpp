@@ -31,4 +31,6 @@ void UMultiplayer_AnimInstance::NativeUpdateAnimation(float DeltaTime)
 
 	bIsMoving = MC->GetCharacterMovement()->GetCurrentAcceleration().Size() > 0.f ? true : false;
 
+	bIsWeaponEquipped = MC->IsWeaponEquipped();
+
 }

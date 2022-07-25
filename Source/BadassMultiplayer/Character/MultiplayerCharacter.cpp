@@ -203,6 +203,12 @@ void AMultiplayerCharacter::ServerEquipButtonPressed_Implementation()
 }
 
 
+bool AMultiplayerCharacter::IsWeaponEquipped()
+{
+	return (Combat && Combat->EquippedWeapon);
+}
+
+
 
 
 

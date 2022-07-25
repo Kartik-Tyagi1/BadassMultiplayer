@@ -22,12 +22,18 @@ public:
 	// Allows AMultiplayerCharacter to have full access to everything in the UCombatComponent (USE THIS VERY CAREFULLY)
 	friend class AMultiplayerCharacter;
 
+	/* Registers which variables are to be replicated across the game instances */
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
 protected:
 	virtual void BeginPlay() override;
 
 
 private:
 	AMultiplayerCharacter* Character;
+
+	/* No need for any RepNotify here since we only need data to be sent to clients. No extra functionality */
+	UPROPERTY(Replicated)
 	AWeapon* EquippedWeapon;
 
 

@@ -2,6 +2,7 @@
 #include "BadassMultiplayer/Character/MultiplayerCharacter.h"
 #include "BadassMultiplayer/Weapon/Weapon.h"
 #include "Engine/SkeletalMeshSocket.h"
+#include "Net/UnrealNetwork.h"
 
 UCombatComponent::UCombatComponent()
 {
@@ -9,6 +10,14 @@ UCombatComponent::UCombatComponent()
 
 }
 
+
+void UCombatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	// We want this data replicate everywhere so that the animation is shown on server and clients
+	DOREPLIFETIME(UCombatComponent, EquippedWeapon);
+}
 
 void UCombatComponent::BeginPlay()
 {
@@ -39,4 +48,5 @@ void UCombatComponent::EquipWeapon(AWeapon* WeaponToEquip)
 	// The Owner is a built in replicated variable. So when we change the owner, it will be replicated across clients
 	EquippedWeapon->SetOwner(Character);
 }
+
 
