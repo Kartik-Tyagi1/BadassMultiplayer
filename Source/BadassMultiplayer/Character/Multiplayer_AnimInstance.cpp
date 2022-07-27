@@ -35,4 +35,6 @@ void UMultiplayer_AnimInstance::NativeUpdateAnimation(float DeltaTime)
 
 	bIsCrouched = MC->bIsCrouched;
 
+	bIsAiming = MC->GetIsAiming();
+
 }

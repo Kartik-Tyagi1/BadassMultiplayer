@@ -17,12 +17,27 @@ void UCombatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 
 	// We want this data to replicate everywhere so that the animation is shown on server and clients. So no need for condition
 	DOREPLIFETIME(UCombatComponent, EquippedWeapon);
+	DOREPLIFETIME(UCombatComponent, bIsAiming);
 }
 
 void UCombatComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
+}
+
+void UCombatComponent::SetIsAiming(bool bAiming)
+{
+	bIsAiming = bAiming;
+
+	// When we call an RPC on a client machine then it gets excecuted on the server and on the client machine when the UPROPERTY has the Server argument
+	// When the server calls this it will be set on the server anyway so its kinda redundant but not big deal
+	ServerSetIsAiming(bAiming);
+}
+
+void UCombatComponent::ServerSetIsAiming_Implementation(bool bAiming)
+{
+	bIsAiming = bAiming;
 }
 
 
