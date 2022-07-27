@@ -33,4 +33,6 @@ void UMultiplayer_AnimInstance::NativeUpdateAnimation(float DeltaTime)
 
 	bIsWeaponEquipped = MC->IsWeaponEquipped();
 
+	bIsCrouched = MC->bIsCrouched;
+
 }

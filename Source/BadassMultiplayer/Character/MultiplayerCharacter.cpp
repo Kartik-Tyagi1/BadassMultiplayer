@@ -35,6 +35,8 @@ AMultiplayerCharacter::AMultiplayerCharacter()
 	Combat = CreateDefaultSubobject<UCombatComponent>(TEXT("CombatComponent"));
 	// No need to register components since they are special and get replicated themselves
 	Combat->SetIsReplicated(true);
+	
+	GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
 }
 
 void AMultiplayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -85,6 +87,7 @@ void AMultiplayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInp
 
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
 	PlayerInputComponent->BindAction("Equip", IE_Pressed, this, &ThisClass::EquipButtonPressed);
+	PlayerInputComponent->BindAction("Crouch", IE_Pressed, this, &ThisClass::CrouchButtonPressed);
 
 	PlayerInputComponent->BindAxis("MoveForward", this, &ThisClass::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &ThisClass::MoveRight);
@@ -191,6 +194,19 @@ void AMultiplayerCharacter::EquipButtonPressed()
 			// Called for clients
 			ServerEquipButtonPressed();
 		}
+	}
+}
+
+void AMultiplayerCharacter::CrouchButtonPressed()
+{
+	// Crouch() and UnCrouch()  are inherited from Character class and replicate the bIsCrouched variable
+	if (bIsCrouched)
+	{
+		UnCrouch();
+	}
+	else
+	{
+		Crouch();
 	}
 }
 

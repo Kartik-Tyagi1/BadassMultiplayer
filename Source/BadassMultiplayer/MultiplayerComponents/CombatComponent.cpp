@@ -15,7 +15,7 @@ void UCombatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	// We want this data replicate everywhere so that the animation is shown on server and clients
+	// We want this data to replicate everywhere so that the animation is shown on server and clients. So no need for condition
 	DOREPLIFETIME(UCombatComponent, EquippedWeapon);
 }
 

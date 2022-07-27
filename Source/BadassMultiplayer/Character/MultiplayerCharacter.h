@@ -39,6 +39,7 @@ protected:
 	void LookUp(float Value);
 
 	void EquipButtonPressed();
+	void CrouchButtonPressed();
 
 private:
 	UPROPERTY(VisibleAnywhere, Category = Camera, meta = (AllowPrivateAccess = "true"))
@@ -82,6 +83,7 @@ private:
 	*/
 	UFUNCTION(Server, Reliable)
 	void ServerEquipButtonPressed();
+
 
 public:
 	void SetOverlappingWeapon(AWeapon* Weapon);
