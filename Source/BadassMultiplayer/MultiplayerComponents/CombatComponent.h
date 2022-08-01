@@ -29,19 +29,24 @@ protected:
 	virtual void BeginPlay() override;
 	void SetIsAiming(bool bAiming);
 
+	UFUNCTION(Server, Reliable)
+	void ServerSetIsAiming(bool bAiming);
+
+	UFUNCTION()
+	void OnRep_EquippedWeapon();
+
 
 private:
 	AMultiplayerCharacter* Character;
 
 	/* No need for any RepNotify here since we only need data to be sent to clients. No extra functionality */
-	UPROPERTY(Replicated)
+	UPROPERTY(ReplicatedUsing = OnRep_EquippedWeapon)
 	AWeapon* EquippedWeapon;
 
 	UPROPERTY(Replicated)
 	bool bIsAiming;
 
-	UFUNCTION(Server, Reliable)
-	void ServerSetIsAiming(bool bAiming);
+
 
 
 public:	

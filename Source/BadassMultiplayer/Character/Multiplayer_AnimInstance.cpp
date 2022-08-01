@@ -4,6 +4,7 @@
 #include "Multiplayer_AnimInstance.h"
 #include "MultiplayerCharacter.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/KismetMathLibrary.h"
 
 void UMultiplayer_AnimInstance::NativeInitializeAnimation()
 {
@@ -36,5 +37,28 @@ void UMultiplayer_AnimInstance::NativeUpdateAnimation(float DeltaTime)
 	bIsCrouched = MC->bIsCrouched;
 
 	bIsAiming = MC->GetIsAiming();
+
+	// This is the global rotation of the camera as we move the mouse (so if we face the character's back, aim rotation yaw is 0, )
+	// left is negative values (0 -> -180), right is postive values (0 -> +180)
+	FRotator AimRotation = MC->GetBaseAimRotation();
+
+	// This is the rotation of the character based on its movement in the world direction 
+	// i.e. moving in the world +x direction gives a yaw value of 0
+	FRotator MovementRotation = UKismetMathLibrary::MakeRotFromX(MC->GetVelocity());
+
+	// Getting the delta will tell us what direction to move in for the blendspace
+	const FRotator DeltaRot = UKismetMathLibrary::NormalizedDeltaRotator(MovementRotation, AimRotation);
+	DeltaRotation = FMath::RInterpTo(DeltaRotation, DeltaRot, DeltaTime, 6.f);
+	YawOffset = DeltaRotation.Yaw;
+
+
+	// Lean if found between the delta between the Current Rotation and the Rotation Last Frame 
+	CharacterRotationLastFrame = CharacterRotation;
+	CharacterRotation = MC->GetActorRotation(); // Rotation of the root/capsule component
+	const FRotator Delta = UKismetMathLibrary::NormalizedDeltaRotator(CharacterRotation, CharacterRotationLastFrame);
+	const float Target = Delta.Yaw / DeltaTime;
+	const float Interp = FMath::FInterpTo(Lean, Target, DeltaTime, 6.f);
+	Lean = FMath::Clamp(Interp, -90.f, 90.f);
+
 
 }

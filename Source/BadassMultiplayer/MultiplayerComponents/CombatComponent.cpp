@@ -3,6 +3,7 @@
 #include "BadassMultiplayer/Weapon/Weapon.h"
 #include "Engine/SkeletalMeshSocket.h"
 #include "Net/UnrealNetwork.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 UCombatComponent::UCombatComponent()
 {
@@ -35,6 +36,15 @@ void UCombatComponent::SetIsAiming(bool bAiming)
 	ServerSetIsAiming(bAiming);
 }
 
+void UCombatComponent::OnRep_EquippedWeapon()
+{
+	if (EquippedWeapon && Character)
+	{
+		Character->GetCharacterMovement()->bOrientRotationToMovement = false;
+		Character->bUseControllerRotationYaw = true;
+	}
+}
+
 void UCombatComponent::ServerSetIsAiming_Implementation(bool bAiming)
 {
 	bIsAiming = bAiming;
@@ -62,6 +72,8 @@ void UCombatComponent::EquipWeapon(AWeapon* WeaponToEquip)
 
 	// The Owner is a built in replicated variable. So when we change the owner, it will be replicated across clients
 	EquippedWeapon->SetOwner(Character);
+	Character->GetCharacterMovement()->bOrientRotationToMovement = false;
+	Character->bUseControllerRotationYaw = true;
 }
 
 
