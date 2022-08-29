@@ -5,7 +5,9 @@
 #include "Net/UnrealNetwork.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
-UCombatComponent::UCombatComponent()
+UCombatComponent::UCombatComponent():
+	BaseWalkSpeed(600.f),
+	AimWalkSpeed(450.f)
 {
 	PrimaryComponentTick.bCanEverTick = false;
 
@@ -24,6 +26,10 @@ void UCombatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 void UCombatComponent::BeginPlay()
 {
 	Super::BeginPlay();
+	if (Character)
+	{
+		Character->GetCharacterMovement()->MaxWalkSpeed = BaseWalkSpeed;
+	}
 
 }
 
@@ -34,6 +40,21 @@ void UCombatComponent::SetIsAiming(bool bAiming)
 	// When we call an RPC on a client machine then it gets excecuted on the server and on the client machine when the UPROPERTY has the Server argument
 	// When the server calls this it will be set on the server anyway so its kinda redundant but not big deal
 	ServerSetIsAiming(bAiming);
+	if (Character)
+	{
+		Character->GetCharacterMovement()->MaxWalkSpeed = bAiming ? AimWalkSpeed : BaseWalkSpeed;
+	}
+}
+
+void UCombatComponent::ServerSetIsAiming_Implementation(bool bAiming)
+{
+	bIsAiming = bAiming;
+
+	// Server needs to know how fast we are moving so it can be replicated
+	if (Character)
+	{
+		Character->GetCharacterMovement()->MaxWalkSpeed = bAiming ? AimWalkSpeed : BaseWalkSpeed;
+	}
 }
 
 void UCombatComponent::OnRep_EquippedWeapon()
@@ -44,12 +65,6 @@ void UCombatComponent::OnRep_EquippedWeapon()
 		Character->bUseControllerRotationYaw = true;
 	}
 }
-
-void UCombatComponent::ServerSetIsAiming_Implementation(bool bAiming)
-{
-	bIsAiming = bAiming;
-}
-
 
 void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
