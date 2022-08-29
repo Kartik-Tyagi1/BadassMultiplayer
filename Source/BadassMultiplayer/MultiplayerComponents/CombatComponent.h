@@ -39,7 +39,6 @@ protected:
 private:
 	AMultiplayerCharacter* Character;
 
-	/* No need for any RepNotify here since we only need data to be sent to clients. No extra functionality */
 	UPROPERTY(ReplicatedUsing = OnRep_EquippedWeapon)
 	AWeapon* EquippedWeapon;
 

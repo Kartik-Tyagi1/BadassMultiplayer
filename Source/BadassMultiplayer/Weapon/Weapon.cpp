@@ -105,7 +105,7 @@ void AWeapon::SetWeaponState(EWeaponState State)
 {
 	WeaponState = State;
 
-	// Modify weapon variables on the server, which will propogate to clients regularly
+	// Modify weapon variables on the server, which will propogate to clients regularly since when the variable changes the RepNotify will be called
 	switch (WeaponState)
 	{
 	case EWeaponState::EWS_Equipped:
