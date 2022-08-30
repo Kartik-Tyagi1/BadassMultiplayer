@@ -60,5 +60,8 @@ void UMultiplayer_AnimInstance::NativeUpdateAnimation(float DeltaTime)
 	const float Interp = FMath::FInterpTo(Lean, Target, DeltaTime, 6.f);
 	Lean = FMath::Clamp(Interp, -90.f, 90.f);
 
+	AO_Yaw = MC->GetAO_Yaw();
+	AO_Pitch = MC->GetAO_Pitch();
+
 
 }

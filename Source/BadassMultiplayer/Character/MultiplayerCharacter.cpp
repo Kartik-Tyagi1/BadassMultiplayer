@@ -10,6 +10,7 @@
 #include "BadassMultiplayer/Weapon/Weapon.h"
 #include "BadassMultiplayer/MultiplayerComponents/CombatComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "Kismet/KismetMathLibrary.h"
 
 
 AMultiplayerCharacter::AMultiplayerCharacter()
@@ -82,7 +83,7 @@ void AMultiplayerCharacter::PostInitializeComponents()
 void AMultiplayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
+	CalculateAO(DeltaTime);
 }
 
 void AMultiplayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -249,6 +250,33 @@ bool AMultiplayerCharacter::IsWeaponEquipped()
 bool AMultiplayerCharacter::GetIsAiming()
 {
 	return (Combat && Combat->bIsAiming);
+}
+
+void AMultiplayerCharacter::CalculateAO(float DeltaTime)
+{
+	if (Combat && Combat->EquippedWeapon == nullptr) return;
+
+	FVector Velocity = GetVelocity();
+	Velocity.Z = 0.f;
+	float Speed = Velocity.Size();
+
+	bool bIsInAir = GetCharacterMovement()->IsFalling();
+
+	if (Speed == 0 && !bIsInAir) // Not Moving or Jumping
+	{
+		FRotator CurrentAimRotation = FRotator(0.f, GetBaseAimRotation().Yaw, 0.f);
+		const FRotator DeltaRotation = UKismetMathLibrary::NormalizedDeltaRotator(CurrentAimRotation, StartingAimRotation);
+		AO_Yaw = DeltaRotation.Yaw;
+		bUseControllerRotationYaw = false;
+	}
+	if (Speed > 0.f || bIsInAir) // Moving or Jumping
+	{
+		StartingAimRotation = FRotator(0.f, GetBaseAimRotation().Yaw, 0.f);
+		AO_Yaw = 0.f;
+		bUseControllerRotationYaw = true;
+	}
+
+	AO_Pitch = GetBaseAimRotation().Pitch;
 }
 
 
