@@ -277,6 +277,14 @@ void AMultiplayerCharacter::CalculateAO(float DeltaTime)
 	}
 
 	AO_Pitch = GetBaseAimRotation().Pitch;
+	// Rotation data is compressed before it is sent across the network, and this causes any negative angles values
+	// To become unsigned so we need to map them back to original values
+	if (AO_Pitch > 90.f && !IsLocallyControlled())
+	{
+		FVector2D InRange(270.f, 360.f);
+		FVector2D OutRange(-90.f, 0.f);
+		AO_Pitch = FMath::GetMappedRangeValueClamped(InRange, OutRange, AO_Pitch);
+	}
 }
 
 
