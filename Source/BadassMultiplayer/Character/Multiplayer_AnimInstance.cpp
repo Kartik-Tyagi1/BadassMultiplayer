@@ -5,6 +5,7 @@
 #include "MultiplayerCharacter.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "BadassMultiplayer/Weapon/Weapon.h"
 
 void UMultiplayer_AnimInstance::NativeInitializeAnimation()
 {
@@ -34,9 +35,12 @@ void UMultiplayer_AnimInstance::NativeUpdateAnimation(float DeltaTime)
 
 	bIsWeaponEquipped = MC->IsWeaponEquipped();
 
+	EquippedWeapon = MC->GetEquippedWeapon();
+
 	bIsCrouched = MC->bIsCrouched;
 
 	bIsAiming = MC->GetIsAiming();
+
 
 	// This is the global rotation of the camera as we move the mouse (so if we face the character's back, aim rotation yaw is 0, )
 	// left is negative values (0 -> -180), right is postive values (0 -> +180)
@@ -62,6 +66,16 @@ void UMultiplayer_AnimInstance::NativeUpdateAnimation(float DeltaTime)
 
 	AO_Yaw = MC->GetAO_Yaw();
 	AO_Pitch = MC->GetAO_Pitch();
+
+	if (bIsWeaponEquipped && EquippedWeapon && EquippedWeapon->GetWeaponMesh() && MC->GetMesh())
+	{
+		LeftHandTransform = EquippedWeapon->GetWeaponMesh()->GetSocketTransform(FName("LeftHandSocket"), ERelativeTransformSpace::RTS_World);
+		FVector OutPosition;
+		FRotator OutRotation;
+		MC->GetMesh()->TransformToBoneSpace(FName("hand_r"), LeftHandTransform.GetLocation(), FRotator::ZeroRotator, OutPosition, OutRotation);
+		LeftHandTransform.SetLocation(OutPosition);
+		LeftHandTransform.SetRotation(FQuat(OutRotation));
+	}
 
 
 }

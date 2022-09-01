@@ -6,9 +6,8 @@
 #include "Animation/AnimInstance.h"
 #include "Multiplayer_AnimInstance.generated.h"
 
-/**
- * 
- */
+class AWeapon;
+
 UCLASS()
 class BADASSMULTIPLAYER_API UMultiplayer_AnimInstance : public UAnimInstance
 {
@@ -34,6 +33,8 @@ private:
 	UPROPERTY(BlueprintReadOnly, Category = Character, meta = (AllowPrivateAccess = "true"))
 	bool bIsWeaponEquipped;
 
+	AWeapon* EquippedWeapon;
+
 	UPROPERTY(BlueprintReadOnly, Category = Character, meta = (AllowPrivateAccess = "true"))
 	bool bIsCrouched;
 
@@ -46,14 +47,22 @@ private:
 	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
 	float Lean;
 
-	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
-	float AO_Yaw;
-
-	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
-	float AO_Pitch;
-
+	
 	FRotator CharacterRotationLastFrame;
 	FRotator CharacterRotation;
 	FRotator DeltaRotation;
+
+
+	// Aim Offset Yaw
+	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
+	float AO_Yaw;
+
+	// Aim Offset Pitch
+	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
+	float AO_Pitch;
+
+	// For FABRIK 
+	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
+	FTransform LeftHandTransform;
 	
 };

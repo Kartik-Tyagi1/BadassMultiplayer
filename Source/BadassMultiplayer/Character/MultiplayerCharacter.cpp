@@ -252,6 +252,12 @@ bool AMultiplayerCharacter::GetIsAiming()
 	return (Combat && Combat->bIsAiming);
 }
 
+AWeapon* AMultiplayerCharacter::GetEquippedWeapon()
+{
+	if(Combat == nullptr) return nullptr;
+	return Combat->EquippedWeapon;
+}
+
 void AMultiplayerCharacter::CalculateAO(float DeltaTime)
 {
 	if (Combat && Combat->EquippedWeapon == nullptr) return;
