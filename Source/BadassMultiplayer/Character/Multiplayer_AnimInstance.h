@@ -4,7 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "Animation/AnimInstance.h"
+#include "BadassMultiplayer/Types/TurningInPlace.h"
 #include "Multiplayer_AnimInstance.generated.h"
+
 
 class AWeapon;
 
@@ -64,5 +66,8 @@ private:
 	// For FABRIK 
 	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
 	FTransform LeftHandTransform;
+
+	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
+	ETurningState TurningState;
 	
 };

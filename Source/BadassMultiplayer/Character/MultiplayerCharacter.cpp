@@ -13,7 +13,9 @@
 #include "Kismet/KismetMathLibrary.h"
 
 
-AMultiplayerCharacter::AMultiplayerCharacter()
+AMultiplayerCharacter::AMultiplayerCharacter() :
+	StartingAimRotation(GetBaseAimRotation()),
+	TurningState(ETurningState::ETIP_Still)
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -273,6 +275,7 @@ void AMultiplayerCharacter::CalculateAO(float DeltaTime)
 		FRotator CurrentAimRotation = FRotator(0.f, GetBaseAimRotation().Yaw, 0.f);
 		const FRotator DeltaRotation = UKismetMathLibrary::NormalizedDeltaRotator(CurrentAimRotation, StartingAimRotation);
 		AO_Yaw = DeltaRotation.Yaw;
+		TurnInPlace(DeltaTime);
 		bUseControllerRotationYaw = false;
 	}
 	if (Speed > 0.f || bIsInAir) // Moving or Jumping
@@ -280,6 +283,7 @@ void AMultiplayerCharacter::CalculateAO(float DeltaTime)
 		StartingAimRotation = FRotator(0.f, GetBaseAimRotation().Yaw, 0.f);
 		AO_Yaw = 0.f;
 		bUseControllerRotationYaw = true;
+		TurningState = ETurningState::ETIP_Still;
 	}
 
 	AO_Pitch = GetBaseAimRotation().Pitch;
@@ -290,6 +294,18 @@ void AMultiplayerCharacter::CalculateAO(float DeltaTime)
 		FVector2D InRange(270.f, 360.f);
 		FVector2D OutRange(-90.f, 0.f);
 		AO_Pitch = FMath::GetMappedRangeValueClamped(InRange, OutRange, AO_Pitch);
+	}
+}
+
+void AMultiplayerCharacter::TurnInPlace(float DeltaTime)
+{
+	if (AO_Yaw > 90.f)
+	{
+		TurningState = ETurningState::ETIP_Right;
+	}
+	else if (AO_Yaw < -90.f)
+	{
+		TurningState = ETurningState::ETIP_Left;
 	}
 }
 

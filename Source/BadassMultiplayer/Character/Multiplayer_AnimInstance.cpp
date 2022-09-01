@@ -41,6 +41,8 @@ void UMultiplayer_AnimInstance::NativeUpdateAnimation(float DeltaTime)
 
 	bIsAiming = MC->GetIsAiming();
 
+	TurningState = MC->GetTurningState();
+
 
 	// This is the global rotation of the camera as we move the mouse (so if we face the character's back, aim rotation yaw is 0, )
 	// left is negative values (0 -> -180), right is postive values (0 -> +180)
@@ -76,6 +78,8 @@ void UMultiplayer_AnimInstance::NativeUpdateAnimation(float DeltaTime)
 		LeftHandTransform.SetLocation(OutPosition);
 		LeftHandTransform.SetRotation(FQuat(OutRotation));
 	}
+
+
 
 
 }

@@ -4,7 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "BadassMultiplayer/Types/TurningInPlace.h"
 #include "MultiplayerCharacter.generated.h"
+
 
 class UCameraComponent;
 class USpringArmComponent;
@@ -44,6 +46,7 @@ protected:
 	void AimButtonReleased();
 
 	void CalculateAO(float DeltaTime);
+	void TurnInPlace(float DeltaTime);
 
 private:
 	UPROPERTY(VisibleAnywhere, Category = Camera, meta = (AllowPrivateAccess = "true"))
@@ -93,6 +96,8 @@ private:
 	float AO_Pitch;
 	FRotator StartingAimRotation;
 
+	ETurningState TurningState;
+
 
 public:
 	void SetOverlappingWeapon(AWeapon* Weapon);
@@ -101,5 +106,6 @@ public:
 	FORCEINLINE float GetAO_Yaw() const { return AO_Yaw; }
 	FORCEINLINE float GetAO_Pitch() const { return AO_Pitch; }
 	AWeapon* GetEquippedWeapon();
+	FORCEINLINE ETurningState GetTurningState() const { return TurningState; }
 
 };
