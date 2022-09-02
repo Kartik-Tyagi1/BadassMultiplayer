@@ -96,6 +96,9 @@ private:
 	float AO_Pitch;
 	FRotator StartingAimRotation;
 
+	// Used for turn in place anims
+	float Interp_AO_Yaw;
+
 	ETurningState TurningState;
 
 

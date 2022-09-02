@@ -14,7 +14,6 @@
 
 
 AMultiplayerCharacter::AMultiplayerCharacter() :
-	StartingAimRotation(GetBaseAimRotation()),
 	TurningState(ETurningState::ETIP_Still)
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
@@ -68,7 +67,7 @@ void AMultiplayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>
 void AMultiplayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	
+	StartingAimRotation = GetBaseAimRotation();	
 }
 
 void AMultiplayerCharacter::PostInitializeComponents()
@@ -275,8 +274,14 @@ void AMultiplayerCharacter::CalculateAO(float DeltaTime)
 		FRotator CurrentAimRotation = FRotator(0.f, GetBaseAimRotation().Yaw, 0.f);
 		const FRotator DeltaRotation = UKismetMathLibrary::NormalizedDeltaRotator(CurrentAimRotation, StartingAimRotation);
 		AO_Yaw = DeltaRotation.Yaw;
+
+		if (TurningState == ETurningState::ETIP_Still)
+		{
+			Interp_AO_Yaw = AO_Yaw;
+		}
+
 		TurnInPlace(DeltaTime);
-		bUseControllerRotationYaw = false;
+		bUseControllerRotationYaw = true;
 	}
 	if (Speed > 0.f || bIsInAir) // Moving or Jumping
 	{
@@ -306,6 +311,18 @@ void AMultiplayerCharacter::TurnInPlace(float DeltaTime)
 	else if (AO_Yaw < -90.f)
 	{
 		TurningState = ETurningState::ETIP_Left;
+	}
+
+	if (TurningState != ETurningState::ETIP_Still)
+	{
+		Interp_AO_Yaw = FMath::FInterpTo(Interp_AO_Yaw, 0.f, DeltaTime, 4.f);
+		AO_Yaw = Interp_AO_Yaw;
+		if (FMath::Abs(AO_Yaw) < 15.f)
+		{
+			TurningState = ETurningState::ETIP_Still;
+			StartingAimRotation = FRotator(0.f, GetBaseAimRotation().Yaw, 0.f);
+		}
+		
 	}
 }
 
