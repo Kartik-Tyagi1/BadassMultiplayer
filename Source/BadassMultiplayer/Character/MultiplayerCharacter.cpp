@@ -43,6 +43,11 @@ AMultiplayerCharacter::AMultiplayerCharacter() :
 
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
 	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
+
+	// How fast we want data to be sent per second across the network
+	NetUpdateFrequency = 66.f;
+	// The slowest we want the network to send data across the network
+	MinNetUpdateFrequency = 33.f;
 }
 
 void AMultiplayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
