@@ -48,6 +48,10 @@ AMultiplayerCharacter::AMultiplayerCharacter() :
 	NetUpdateFrequency = 66.f;
 	// The slowest we want the network to send data across the network
 	MinNetUpdateFrequency = 33.f;
+
+	GetCharacterMovement()->RotationRate = FRotator(0.f, 0.f, 850.f);
+
+
 }
 
 void AMultiplayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -96,7 +100,7 @@ void AMultiplayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInp
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
-	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
+	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ThisClass::Jump);
 	PlayerInputComponent->BindAction("Equip", IE_Pressed, this, &ThisClass::EquipButtonPressed);
 	PlayerInputComponent->BindAction("Crouch", IE_Pressed, this, &ThisClass::CrouchButtonPressed);
 	PlayerInputComponent->BindAction("Aim", IE_Pressed, this, &ThisClass::AimButtonPressed);
@@ -137,6 +141,20 @@ void AMultiplayerCharacter::Turn(float Value)
 void AMultiplayerCharacter::LookUp(float Value)
 {
 	AddControllerPitchInput(Value);
+}
+
+void AMultiplayerCharacter::Jump()
+{
+	if (bIsCrouched)
+	{
+		// Make character stand up is space bar is pressed when crouching
+		UnCrouch();
+	}
+	else
+	{
+		// Make character jump if space bar is pressed when standing
+		Super::Jump();
+	}
 }
 
 
