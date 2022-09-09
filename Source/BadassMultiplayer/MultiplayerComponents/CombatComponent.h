@@ -35,6 +35,9 @@ protected:
 	UFUNCTION()
 	void OnRep_EquippedWeapon();
 
+	// Called from MultiplayerCharacter.cpp 
+	void FireButtonPressed(bool bFireIsPressed);
+
 
 private:
 	AMultiplayerCharacter* Character;
@@ -50,6 +53,8 @@ private:
 
 	UPROPERTY(EditAnywhere)
 	float AimWalkSpeed;
+
+	bool bFireButtonPressed;
 
 
 

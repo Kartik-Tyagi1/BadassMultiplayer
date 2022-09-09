@@ -13,6 +13,7 @@ class USpringArmComponent;
 class UWidgetComponent;
 class AWeapon;
 class UCombatComponent;
+class UAnimMontage;
 
 UCLASS()
 class BADASSMULTIPLAYER_API AMultiplayerCharacter : public ACharacter
@@ -45,6 +46,8 @@ protected:
 	void CrouchButtonPressed();
 	void AimButtonPressed();
 	void AimButtonReleased();
+	void FireButtonPressed();
+	void FireButtonReleased();
 
 	void CalculateAO(float DeltaTime);
 	void TurnInPlace(float DeltaTime);
@@ -99,17 +102,24 @@ private:
 
 	// Used for turn in place anims
 	float Interp_AO_Yaw;
-
 	ETurningState TurningState;
 
+	// Section to determine which fire weapon animation to use depending on aim state
+	UPROPERTY(EditAnywhere, Category = Combat)
+	UAnimMontage* FireWeaponMontage;
+
+// INLINES
+public:
+	FORCEINLINE float GetAO_Yaw() const { return AO_Yaw; }
+	FORCEINLINE float GetAO_Pitch() const { return AO_Pitch; }
+	FORCEINLINE ETurningState GetTurningState() const { return TurningState; }
 
 public:
 	void SetOverlappingWeapon(AWeapon* Weapon);
 	bool IsWeaponEquipped();
 	bool GetIsAiming();
-	FORCEINLINE float GetAO_Yaw() const { return AO_Yaw; }
-	FORCEINLINE float GetAO_Pitch() const { return AO_Pitch; }
 	AWeapon* GetEquippedWeapon();
-	FORCEINLINE ETurningState GetTurningState() const { return TurningState; }
+	void PlayFireMontage(bool bIsAiming);
+
 
 };

@@ -11,6 +11,8 @@
 #include "BadassMultiplayer/MultiplayerComponents/CombatComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Multiplayer_AnimInstance.h"
+#include "Animation/AnimMontage.h"
 
 
 AMultiplayerCharacter::AMultiplayerCharacter() :
@@ -105,6 +107,8 @@ void AMultiplayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInp
 	PlayerInputComponent->BindAction("Crouch", IE_Pressed, this, &ThisClass::CrouchButtonPressed);
 	PlayerInputComponent->BindAction("Aim", IE_Pressed, this, &ThisClass::AimButtonPressed);
 	PlayerInputComponent->BindAction("Aim", IE_Released, this, &ThisClass::AimButtonReleased);
+	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &ThisClass::FireButtonPressed);
+	PlayerInputComponent->BindAction("Fire", IE_Released, this, &ThisClass::FireButtonReleased);
 
 	PlayerInputComponent->BindAxis("MoveForward", this, &ThisClass::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &ThisClass::MoveRight);
@@ -257,6 +261,22 @@ void AMultiplayerCharacter::AimButtonReleased()
 	}
 }
 
+void AMultiplayerCharacter::FireButtonPressed()
+{
+	if (Combat)
+	{
+		Combat->FireButtonPressed(true);
+	}
+}
+
+void AMultiplayerCharacter::FireButtonReleased()
+{
+	if (Combat)
+	{
+		Combat->FireButtonPressed(false);
+	}
+}
+
 void AMultiplayerCharacter::ServerEquipButtonPressed_Implementation()
 {
 	if (Combat)
@@ -347,7 +367,22 @@ void AMultiplayerCharacter::TurnInPlace(float DeltaTime)
 		}
 		
 	}
+
 }
+
+void AMultiplayerCharacter::PlayFireMontage(bool bIsAiming)
+{
+	if (Combat == nullptr || Combat->EquippedWeapon == nullptr) return;
+
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance && FireWeaponMontage)
+	{
+		AnimInstance->Montage_Play(FireWeaponMontage);
+		FName FireSectionName = bIsAiming ? FName("RifleAim") : FName("RifleHip");
+		AnimInstance->Montage_JumpToSection(FireSectionName);
+	}
+}
+
 
 
 
