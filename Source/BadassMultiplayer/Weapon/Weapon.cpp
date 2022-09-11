@@ -124,3 +124,11 @@ void AWeapon::ShowPickupWidget(bool bShowWidget)
 	}
 }
 
+void AWeapon::FireWeapon()
+{
+	if (FireWeaponAnim)
+	{
+		WeaponMesh->PlayAnimation(FireWeaponAnim, false);
+	}
+}
+
