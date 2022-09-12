@@ -38,6 +38,15 @@ protected:
 	// Called from MultiplayerCharacter.cpp 
 	void FireButtonPressed(bool bFireIsPressed);
 
+	// This excutes the weapon fire on the server
+	UFUNCTION(Server, Reliable)
+	void ServerFire();
+
+	// This will be called in server fire (so it gets called on the server, and when a net multicast RPC gets called on the server
+	// it gets executed on the server and on all client machines
+	UFUNCTION(NetMulticast, Reliable)
+	void NetMulticastFire();
+
 
 private:
 	AMultiplayerCharacter* Character;
