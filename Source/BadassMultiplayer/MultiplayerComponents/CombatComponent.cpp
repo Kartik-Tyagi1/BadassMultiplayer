@@ -4,12 +4,14 @@
 #include "Engine/SkeletalMeshSocket.h"
 #include "Net/UnrealNetwork.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/GameplayStatics.h"
+#include "DrawDebugHelpers.h"
 
 UCombatComponent::UCombatComponent():
 	BaseWalkSpeed(600.f),
 	AimWalkSpeed(450.f)
 {
-	PrimaryComponentTick.bCanEverTick = false;
+	PrimaryComponentTick.bCanEverTick = true;
 
 }
 
@@ -32,6 +34,16 @@ void UCombatComponent::BeginPlay()
 	}
 
 }
+
+void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+{
+	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+
+	FHitResult HitResult;
+	TraceUnderCrosshairs(HitResult);
+
+}
+
 
 void UCombatComponent::SetIsAiming(bool bAiming)
 {
@@ -76,6 +88,7 @@ void UCombatComponent::FireButtonPressed(bool bFireIsPressed)
 	
 }
 
+
 void UCombatComponent::ServerFire_Implementation()
 {
 	NetMulticastFire();
@@ -91,11 +104,6 @@ void UCombatComponent::NetMulticastFire_Implementation()
 	}
 }
 
-void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
-{
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
-}
 
 void UCombatComponent::EquipWeapon(AWeapon* WeaponToEquip)
 {
@@ -115,5 +123,45 @@ void UCombatComponent::EquipWeapon(AWeapon* WeaponToEquip)
 	Character->GetCharacterMovement()->bOrientRotationToMovement = false;
 	Character->bUseControllerRotationYaw = true;
 }
+
+void UCombatComponent::TraceUnderCrosshairs(FHitResult& HitResult)
+{
+	FVector2D ViewportSize;
+	if (GEngine && GEngine->GameViewport)
+	{
+		GEngine->GameViewport->GetViewportSize(ViewportSize);
+	}
+
+	FVector2D CrosshairCenter(ViewportSize.X / 2, ViewportSize.Y / 2);
+
+	FVector CrosshairWorldPosition, CrosshairWorldDirection;
+	UGameplayStatics::DeprojectScreenToWorld(
+		UGameplayStatics::GetPlayerController(this, 0),
+		CrosshairCenter,
+		CrosshairWorldPosition,
+		CrosshairWorldDirection
+	);
+
+	FVector Start = CrosshairWorldPosition;
+	FVector End = Start + CrosshairWorldDirection * TRACE_LENGTH;
+
+	GetWorld()->LineTraceSingleByChannel(
+		HitResult,
+		Start,
+		End,
+		ECollisionChannel::ECC_Visibility
+	);
+
+	if (!HitResult.bBlockingHit)
+	{
+		HitResult.ImpactPoint = End;
+	}
+	else
+	{
+		DrawDebugSphere(GetWorld(), HitResult.ImpactPoint, 12.f, 12, FColor::Red);
+	}
+		
+}
+
 
 
