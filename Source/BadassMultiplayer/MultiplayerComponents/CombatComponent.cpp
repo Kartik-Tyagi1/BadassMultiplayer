@@ -100,7 +100,7 @@ void UCombatComponent::NetMulticastFire_Implementation()
 	if (Character)
 	{
 		Character->PlayFireMontage(bIsAiming);
-		EquippedWeapon->FireWeapon();
+		EquippedWeapon->FireWeapon(HitTarget);
 	}
 }
 
@@ -155,9 +155,11 @@ void UCombatComponent::TraceUnderCrosshairs(FHitResult& HitResult)
 	if (!HitResult.bBlockingHit)
 	{
 		HitResult.ImpactPoint = End;
+		HitTarget = End;
 	}
 	else
 	{
+		HitTarget = HitResult.ImpactPoint;
 		DrawDebugSphere(GetWorld(), HitResult.ImpactPoint, 12.f, 12, FColor::Red);
 	}
 		

@@ -35,7 +35,7 @@ public:
 
 	void ShowPickupWidget(bool bShowWidget);
 
-	void FireWeapon();
+	virtual void FireWeapon(const FVector& HitTarget);
 
 protected:
 	virtual void BeginPlay() override;
