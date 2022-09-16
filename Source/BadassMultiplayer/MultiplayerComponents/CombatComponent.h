@@ -42,12 +42,13 @@ protected:
 
 	// This excutes the weapon fire on the server
 	UFUNCTION(Server, Reliable)
-	void ServerFire();
+	void ServerFire(const FVector_NetQuantize& TraceHitTarget);
 
 	// This will be called in server fire (so it gets called on the server, and when a net multicast RPC gets called on the server
-	// it gets executed on the server and on all client machines
+	//		it gets executed on the server and on all client machines
+	// FVector_NetQuantize is a child class of FVector that is more efficent when sending data across the network
 	UFUNCTION(NetMulticast, Reliable)
-	void NetMulticastFire();
+	void NetMulticastFire(const FVector_NetQuantize& TraceHitTarget);
 
 	void TraceUnderCrosshairs(FHitResult& HitResult);
 
@@ -68,9 +69,6 @@ private:
 	float AimWalkSpeed;
 
 	bool bFireButtonPressed;
-
-	FVector HitTarget;
-
 
 public:	
 		

@@ -38,10 +38,6 @@ void UCombatComponent::BeginPlay()
 void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
-	FHitResult HitResult;
-	TraceUnderCrosshairs(HitResult);
-
 }
 
 
@@ -83,24 +79,27 @@ void UCombatComponent::FireButtonPressed(bool bFireIsPressed)
 	bFireButtonPressed = bFireIsPressed;
 	if (bFireButtonPressed)
 	{
-		ServerFire();
+		// Only trace when fire button is pressed then send the hit target (impact point) to the RPC's to do all the weapon firing across machines
+		FHitResult HitResult;
+		TraceUnderCrosshairs(HitResult);
+		ServerFire(HitResult.ImpactPoint);
 	}
 	
 }
 
 
-void UCombatComponent::ServerFire_Implementation()
+void UCombatComponent::ServerFire_Implementation(const FVector_NetQuantize& TraceHitTarget)
 {
-	NetMulticastFire();
+	NetMulticastFire(TraceHitTarget);
 }
 
-void UCombatComponent::NetMulticastFire_Implementation()
+void UCombatComponent::NetMulticastFire_Implementation(const FVector_NetQuantize& TraceHitTarget)
 {
 	if (EquippedWeapon == nullptr) return;
 	if (Character)
 	{
 		Character->PlayFireMontage(bIsAiming);
-		EquippedWeapon->FireWeapon(HitTarget);
+		EquippedWeapon->FireWeapon(TraceHitTarget);
 	}
 }
 
@@ -150,19 +149,7 @@ void UCombatComponent::TraceUnderCrosshairs(FHitResult& HitResult)
 		Start,
 		End,
 		ECollisionChannel::ECC_Visibility
-	);
-
-	if (!HitResult.bBlockingHit)
-	{
-		HitResult.ImpactPoint = End;
-		HitTarget = End;
-	}
-	else
-	{
-		HitTarget = HitResult.ImpactPoint;
-		DrawDebugSphere(GetWorld(), HitResult.ImpactPoint, 12.f, 12, FColor::Red);
-	}
-		
+	);	
 }
 
 
