@@ -6,6 +6,8 @@ void AProjectileWeapon::FireWeapon(const FVector& HitTarget)
 {
 	Super::FireWeapon(HitTarget);
 
+	if (!HasAuthority()) return; // Only spawn a projectile on the server machine
+
 	APawn* ProjectileInstigator = Cast<APawn>(GetOwner());
 
 	const USkeletalMeshSocket* MuzzleFlashSocket = GetWeaponMesh()->GetSocketByName(FName("MuzzleFlash"));

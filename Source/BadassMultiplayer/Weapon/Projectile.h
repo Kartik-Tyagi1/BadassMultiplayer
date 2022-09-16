@@ -5,6 +5,9 @@
 #include "Projectile.generated.h"
 
 class UBoxComponent;
+class UProjectileMovementComponent;
+class UParticleSystem;
+class UParticleSystemComponent;
 
 UCLASS()
 class BADASSMULTIPLAYER_API AProjectile : public AActor
@@ -22,6 +25,13 @@ private:
 	UPROPERTY(EditAnywhere)
 	UBoxComponent* CollisionBox;
 
+	UPROPERTY(VisibleAnywhere)
+	UProjectileMovementComponent* ProjectileMovementComp;
+
+	UPROPERTY(EditAnywhere)
+	UParticleSystem* ProjectileTracer;
+
+	UParticleSystemComponent* ProjectileTracerComp;
 
 public:	
 	
