@@ -6,6 +6,8 @@
 #include "Components/WidgetComponent.h"
 #include "BadassMultiplayer/Character/MultiplayerCharacter.h"
 #include "Net/UnrealNetwork.h"
+#include "BulletShell.h"
+#include "Engine/SkeletalMeshSocket.h"
 
 
 AWeapon::AWeapon():
@@ -129,6 +131,23 @@ void AWeapon::FireWeapon(const FVector& HitTarget)
 	if (FireWeaponAnim)
 	{
 		WeaponMesh->PlayAnimation(FireWeaponAnim, false);
+	}
+	if (BulletShellClass)
+	{
+		const USkeletalMeshSocket* AmmoEjectSocket = WeaponMesh->GetSocketByName(FName("AmmoEject"));
+		if (AmmoEjectSocket)
+		{
+			const FTransform AmmoEjectSocketTransform = AmmoEjectSocket->GetSocketTransform(WeaponMesh);
+
+			UWorld* World = GetWorld();
+			if (World)
+			{
+				World->SpawnActor<ABulletShell>(
+					BulletShellClass, 
+					AmmoEjectSocketTransform.GetLocation(), 
+					AmmoEjectSocketTransform.GetRotation().Rotator());
+			}
+		}
 	}
 }
 
