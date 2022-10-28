@@ -383,6 +383,13 @@ void AMultiplayerCharacter::PlayFireMontage(bool bIsAiming)
 	}
 }
 
+FVector AMultiplayerCharacter::GetHitTarget() const
+{
+	if (Combat == nullptr) return FVector();
+
+	return Combat->HitTarget;
+}
+
 
 
 

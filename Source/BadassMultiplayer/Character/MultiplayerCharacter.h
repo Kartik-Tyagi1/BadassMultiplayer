@@ -120,6 +120,7 @@ public:
 	bool GetIsAiming();
 	AWeapon* GetEquippedWeapon();
 	void PlayFireMontage(bool bIsAiming);
+	FVector GetHitTarget() const;
 
 
 };

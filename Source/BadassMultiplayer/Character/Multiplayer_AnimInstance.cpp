@@ -77,6 +77,14 @@ void UMultiplayer_AnimInstance::NativeUpdateAnimation(float DeltaTime)
 		MC->GetMesh()->TransformToBoneSpace(FName("hand_r"), LeftHandTransform.GetLocation(), FRotator::ZeroRotator, OutPosition, OutRotation);
 		LeftHandTransform.SetLocation(OutPosition);
 		LeftHandTransform.SetRotation(FQuat(OutRotation));
+
+
+		if (MC->IsLocallyControlled())
+		{
+			bLocallyControlled = true;
+			FTransform RightHandTransform = MC->GetMesh()->GetSocketTransform(FName("Hand_R"), ERelativeTransformSpace::RTS_World);
+			RightHandRotation = UKismetMathLibrary::FindLookAtRotation(RightHandTransform.GetLocation(), RightHandTransform.GetLocation() + (RightHandTransform.GetLocation() - MC->GetHitTarget()));
+		}
 	}
 
 

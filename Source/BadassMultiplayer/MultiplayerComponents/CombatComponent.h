@@ -81,6 +81,8 @@ private:
 	float CrosshairVelocityFactor;
 	float CrosshairJumpFactor;
 
+	FVector HitTarget;
+
 public:	
 		
 };
