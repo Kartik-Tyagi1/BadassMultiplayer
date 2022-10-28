@@ -6,6 +6,8 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "DrawDebugHelpers.h"
+#include "BadassMultiplayer/PlayerController/MPPlayerController.h"
+#include "BadassMultiplayer/HUD/BadassHUD.h"
 
 UCombatComponent::UCombatComponent():
 	BaseWalkSpeed(600.f),
@@ -38,6 +40,7 @@ void UCombatComponent::BeginPlay()
 void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+	SetHUDCrosshairs(DeltaTime);
 }
 
 
@@ -150,6 +153,38 @@ void UCombatComponent::TraceUnderCrosshairs(FHitResult& HitResult)
 		End,
 		ECollisionChannel::ECC_Visibility
 	);	
+}
+
+void UCombatComponent::SetHUDCrosshairs(float DeltaTime)
+{
+	if (Character == nullptr || Character->Controller == nullptr) return;
+
+	Controller = Controller == nullptr ? Cast<AMPPlayerController>(Character->Controller) : Controller;
+	if (Controller)
+	{
+		HUD = HUD == nullptr ? Cast<ABadassHUD>(Controller->GetHUD()) : HUD;
+		if (HUD)
+		{
+			FHUDPackage Package;
+			if (EquippedWeapon)
+			{
+				Package.CrosshairCenter = EquippedWeapon->CrosshairCenter;
+				Package.CrosshairTop = EquippedWeapon->CrosshairTop;
+				Package.CrosshairBottom = EquippedWeapon->CrosshairBottom;
+				Package.CrosshairLeft = EquippedWeapon->CrosshairLeft;
+				Package.CrosshairRight = EquippedWeapon->CrosshairRight;
+			}
+			else
+			{
+				Package.CrosshairCenter = nullptr;
+				Package.CrosshairTop = nullptr;
+				Package.CrosshairBottom = nullptr;
+				Package.CrosshairLeft = nullptr;
+				Package.CrosshairRight = nullptr;
+			}
+			HUD->SetHUDPackage(Package);
+		}
+	}
 }
 
 

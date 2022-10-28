@@ -11,6 +11,7 @@ class USphereComponent;
 class UWidgetComponent;
 class UAnimationAsset;
 class ABulletShell;
+class UTexture2D;
 
 UENUM(BlueprintType)
 enum class EWeaponState : uint8
@@ -82,6 +83,24 @@ private:
 public:	
 	void SetWeaponState(EWeaponState State);
 	FORCEINLINE USkeletalMeshComponent* GetWeaponMesh() const { return WeaponMesh; }
+
+	/*
+	* Textures for the weapon crosshairs. These are individual so we can make them dynamic
+	*/
+	UPROPERTY(EditAnywhere, Category = Crosshairs)
+		UTexture2D* CrosshairCenter;
+
+	UPROPERTY(EditAnywhere, Category = Crosshairs)
+		UTexture2D* CrosshairTop;
+
+	UPROPERTY(EditAnywhere, Category = Crosshairs)
+		UTexture2D* CrosshairBottom;
+
+	UPROPERTY(EditAnywhere, Category = Crosshairs)
+		UTexture2D* CrosshairLeft;
+
+	UPROPERTY(EditAnywhere, Category = Crosshairs)
+		UTexture2D* CrosshairRight;
 
 
 	

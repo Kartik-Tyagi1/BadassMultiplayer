@@ -10,6 +10,8 @@
 
 class AWeapon;
 class AMultiplayerCharacter;
+class AMPPlayerController;
+class ABadassHUD;
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class BADASSMULTIPLAYER_API UCombatComponent : public UActorComponent
@@ -52,9 +54,14 @@ protected:
 
 	void TraceUnderCrosshairs(FHitResult& HitResult);
 
+	void SetHUDCrosshairs(float DeltaTime);
 
 private:
 	AMultiplayerCharacter* Character;
+
+	AMPPlayerController* Controller;
+
+	ABadassHUD* HUD;
 
 	UPROPERTY(ReplicatedUsing = OnRep_EquippedWeapon)
 	AWeapon* EquippedWeapon;
