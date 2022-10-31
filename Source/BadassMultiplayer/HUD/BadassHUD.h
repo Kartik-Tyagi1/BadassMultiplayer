@@ -16,6 +16,7 @@ public:
 	UTexture2D* CrosshairLeft;
 	UTexture2D* CrosshairRight;
 	float CrosshairsSpread;
+	FLinearColor CrosshairColor;
 };
 
 /**
@@ -31,7 +32,7 @@ public:
 
 private:
 	FHUDPackage HUDPackage;
-	void DrawCrosshairTexture(UTexture2D* Tex, FVector2D ViewportCenter, FVector2D Spread);
+	void DrawCrosshairTexture(UTexture2D* Tex, FVector2D ViewportCenter, FVector2D Spread, FLinearColor CrosshairColor);
 
 	// Allows us to control the spread from here and the logic will just control the direction and base amount
 	UPROPERTY(EditAnywhere)

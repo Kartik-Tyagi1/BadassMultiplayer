@@ -5,8 +5,8 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "BadassMultiplayer/Types/TurningInPlace.h"
+#include "BadassMultiplayer/Interfaces/CrosshairsInterface.h"
 #include "MultiplayerCharacter.generated.h"
-
 
 class UCameraComponent;
 class USpringArmComponent;
@@ -16,7 +16,7 @@ class UCombatComponent;
 class UAnimMontage;
 
 UCLASS()
-class BADASSMULTIPLAYER_API AMultiplayerCharacter : public ACharacter
+class BADASSMULTIPLAYER_API AMultiplayerCharacter : public ACharacter, public ICrosshairsInterface
 {
 	GENERATED_BODY()
 

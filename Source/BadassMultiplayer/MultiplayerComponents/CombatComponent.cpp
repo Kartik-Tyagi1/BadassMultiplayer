@@ -7,7 +7,6 @@
 #include "Kismet/GameplayStatics.h"
 #include "DrawDebugHelpers.h"
 #include "BadassMultiplayer/PlayerController/MPPlayerController.h"
-#include "BadassMultiplayer/HUD/BadassHUD.h"
 #include "Camera/CameraComponent.h"
 
 
@@ -176,6 +175,15 @@ void UCombatComponent::TraceUnderCrosshairs(FHitResult& HitResult)
 		End,
 		ECollisionChannel::ECC_Visibility
 	);	
+
+	if (HitResult.GetActor() && HitResult.GetActor()->Implements<UCrosshairsInterface>())
+	{
+		Package.CrosshairColor = FLinearColor::Red;
+	}
+	else
+	{
+		Package.CrosshairColor = FLinearColor::White;
+	}
 }
 
 void UCombatComponent::SetHUDCrosshairs(float DeltaTime)
@@ -188,7 +196,6 @@ void UCombatComponent::SetHUDCrosshairs(float DeltaTime)
 		HUD = HUD == nullptr ? Cast<ABadassHUD>(Controller->GetHUD()) : HUD;
 		if (HUD)
 		{
-			FHUDPackage Package;
 			if (EquippedWeapon)
 			{
 				Package.CrosshairCenter = EquippedWeapon->CrosshairCenter;
@@ -244,7 +251,7 @@ void UCombatComponent::SetHUDCrosshairs(float DeltaTime)
 
 void UCombatComponent::InterpFOV(float DeltaTime)
 {
-	if (EquippedWeapon == nullptr || Character == nullptr || Character->GetCamera() == nullptr) return;
+	if (EquippedWeapon == nullptr) return;
 
 	if (bIsAiming)
 	{
@@ -255,7 +262,11 @@ void UCombatComponent::InterpFOV(float DeltaTime)
 		CurrentFOV = FMath::FInterpTo(CurrentFOV, DefaultFOV, DeltaTime, ZoomUninterpSpeed); // Uninterp all weapons at same speed
 	}
 
-	Character->GetCamera()->SetFieldOfView(CurrentFOV);
+	if (Character && Character->GetCamera())
+	{
+		Character->GetCamera()->SetFieldOfView(CurrentFOV);
+	}
+
 }
 
 

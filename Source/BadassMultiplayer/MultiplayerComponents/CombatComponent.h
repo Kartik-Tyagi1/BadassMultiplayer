@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "BadassMultiplayer/HUD/BadassHUD.h"
 #include "CombatComponent.generated.h"
 
 #define TRACE_LENGTH 80000.f
@@ -84,6 +85,7 @@ private:
 	float CrosshairJumpFactor;
 	float CrosshairAimFactor;
 	float CrosshairShootingFactor;
+	FHUDPackage Package;
 
 	FVector HitTarget;
 
