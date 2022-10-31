@@ -121,6 +121,7 @@ public:
 	AWeapon* GetEquippedWeapon();
 	void PlayFireMontage(bool bIsAiming);
 	FVector GetHitTarget() const;
+	UCameraComponent* GetCamera() { return Camera; }
 
 
 };

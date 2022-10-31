@@ -8,6 +8,8 @@
 #include "DrawDebugHelpers.h"
 #include "BadassMultiplayer/PlayerController/MPPlayerController.h"
 #include "BadassMultiplayer/HUD/BadassHUD.h"
+#include "Camera/CameraComponent.h"
+
 
 UCombatComponent::UCombatComponent():
 	BaseWalkSpeed(600.f),
@@ -33,6 +35,11 @@ void UCombatComponent::BeginPlay()
 	if (Character)
 	{
 		Character->GetCharacterMovement()->MaxWalkSpeed = BaseWalkSpeed;
+		if (Character->GetCamera())
+		{
+			DefaultFOV = Character->GetCamera()->FieldOfView;
+			CurrentFOV = Character->GetCamera()->FieldOfView;
+		}
 	}
 
 }
@@ -40,13 +47,16 @@ void UCombatComponent::BeginPlay()
 void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-	SetHUDCrosshairs(DeltaTime);
 
 	if (Character && Character->IsLocallyControlled())
 	{
 		FHitResult HitResult;
 		TraceUnderCrosshairs(HitResult);
 		HitTarget = HitResult.ImpactPoint;
+
+		// These only need to be done on locally controlled people not simulated proxies -> EFFICIENCYYYYYYYYY
+		SetHUDCrosshairs(DeltaTime);
+		InterpFOV(DeltaTime);
 	}
 
 }
@@ -94,6 +104,11 @@ void UCombatComponent::FireButtonPressed(bool bFireIsPressed)
 		FHitResult HitResult;
 		TraceUnderCrosshairs(HitResult);
 		ServerFire(HitResult.ImpactPoint);
+
+		if (EquippedWeapon)
+		{
+			CrosshairShootingFactor = 1.f;
+		}
 	}
 	
 }
@@ -206,13 +221,41 @@ void UCombatComponent::SetHUDCrosshairs(float DeltaTime)
 			{
 				CrosshairJumpFactor = FMath::FInterpTo(CrosshairJumpFactor, 0.f, DeltaTime, 30.f);
 			}
+
+			if (bIsAiming && EquippedWeapon)
+			{
+				CrosshairAimFactor = FMath::FInterpTo(CrosshairAimFactor, -0.58f, DeltaTime, EquippedWeapon->GetZoomInterpSpeed());
+			}
+			else
+			{
+				CrosshairAimFactor = FMath::FInterpTo(CrosshairJumpFactor, 0.f, DeltaTime, ZoomUninterpSpeed);
+			}
+
+			// When firing it is set to 0.8 but after it will go down to 0
+			CrosshairShootingFactor = FMath::FInterpTo(CrosshairShootingFactor, 0.f, DeltaTime, 40.f);
 			
 			
-			Package.CrosshairsSpread = CrosshairVelocityFactor + CrosshairJumpFactor;
+			Package.CrosshairsSpread = 0.5f + CrosshairVelocityFactor + CrosshairJumpFactor + CrosshairAimFactor + CrosshairShootingFactor;
 
 			HUD->SetHUDPackage(Package);
 		}
 	}
+}
+
+void UCombatComponent::InterpFOV(float DeltaTime)
+{
+	if (EquippedWeapon == nullptr || Character == nullptr || Character->GetCamera() == nullptr) return;
+
+	if (bIsAiming)
+	{
+		CurrentFOV = FMath::FInterpTo(CurrentFOV, EquippedWeapon->GetZoomFOV(), DeltaTime, EquippedWeapon->GetZoomInterpSpeed());
+	}
+	else
+	{
+		CurrentFOV = FMath::FInterpTo(CurrentFOV, DefaultFOV, DeltaTime, ZoomUninterpSpeed); // Uninterp all weapons at same speed
+	}
+
+	Character->GetCamera()->SetFieldOfView(CurrentFOV);
 }
 
 

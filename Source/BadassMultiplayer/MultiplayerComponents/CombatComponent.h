@@ -56,6 +56,8 @@ protected:
 
 	void SetHUDCrosshairs(float DeltaTime);
 
+	void InterpFOV(float DeltaTime); 
+
 private:
 	AMultiplayerCharacter* Character;
 
@@ -80,8 +82,18 @@ private:
 	/* HUD and Crosshair Caluclation Variables */
 	float CrosshairVelocityFactor;
 	float CrosshairJumpFactor;
+	float CrosshairAimFactor;
+	float CrosshairShootingFactor;
 
 	FVector HitTarget;
+
+	/* Aiming and FOV */
+	float DefaultFOV;
+	float CurrentFOV;
+
+	UPROPERTY(EditAnywhere, Category = Aiming)
+	float ZoomUninterpSpeed = 20.f;
+
 
 public:	
 		

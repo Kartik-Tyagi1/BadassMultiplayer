@@ -80,13 +80,20 @@ private:
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<ABulletShell> BulletShellClass;
 
+	/* Aiming Zoom Parameters */
+	UPROPERTY(EditAnywhere, Category = Aiming)
+	float ZoomFOV = 30.f;
+
+	UPROPERTY(EditAnywhere, Category = Aiming)
+	float ZoomInterpSpeed = 20.f;
+
 public:	
 	void SetWeaponState(EWeaponState State);
 	FORCEINLINE USkeletalMeshComponent* GetWeaponMesh() const { return WeaponMesh; }
+	FORCEINLINE float GetZoomFOV() const { return ZoomFOV; }
+	FORCEINLINE float GetZoomInterpSpeed() const { return ZoomInterpSpeed; }
 
-	/*
-	* Textures for the weapon crosshairs. These are individual so we can make them dynamic
-	*/
+	/* Textures for the weapon crosshairs. These are individual so we can make them dynamic */
 	UPROPERTY(EditAnywhere, Category = Crosshairs)
 		UTexture2D* CrosshairCenter;
 
@@ -101,6 +108,7 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = Crosshairs)
 		UTexture2D* CrosshairRight;
+
 
 
 	
