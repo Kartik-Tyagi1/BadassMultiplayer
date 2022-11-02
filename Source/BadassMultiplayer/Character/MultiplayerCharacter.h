@@ -108,6 +108,11 @@ private:
 	UPROPERTY(EditAnywhere, Category = Combat)
 	UAnimMontage* FireWeaponMontage;
 
+	UPROPERTY(EditAnywhere, Category = Combat)
+	float CameraThreshold = 200.f;
+
+	void HideCamera();
+
 // INLINES
 public:
 	FORCEINLINE float GetAO_Yaw() const { return AO_Yaw; }

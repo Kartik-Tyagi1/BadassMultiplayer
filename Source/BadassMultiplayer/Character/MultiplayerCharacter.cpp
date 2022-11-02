@@ -97,6 +97,7 @@ void AMultiplayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	CalculateAO(DeltaTime);
+	HideCamera();
 }
 
 void AMultiplayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -161,7 +162,6 @@ void AMultiplayerCharacter::Jump()
 		Super::Jump();
 	}
 }
-
 
 void AMultiplayerCharacter::SetOverlappingWeapon(AWeapon* Weapon)
 {
@@ -389,6 +389,29 @@ FVector AMultiplayerCharacter::GetHitTarget() const
 	if (Combat == nullptr) return FVector();
 
 	return Combat->HitTarget;
+}
+
+
+void AMultiplayerCharacter::HideCamera()
+{
+	if (!IsLocallyControlled()) return;
+
+	if ((Camera->GetComponentLocation() - GetActorLocation()).Size() < CameraThreshold)
+	{
+		GetMesh()->SetVisibility(false);
+		if (Combat && Combat->EquippedWeapon && Combat->EquippedWeapon->GetWeaponMesh())
+		{
+			Combat->EquippedWeapon->GetWeaponMesh()->bOwnerNoSee = true;
+		}
+	}
+	else
+	{
+		GetMesh()->SetVisibility(true);
+		if (Combat && Combat->EquippedWeapon && Combat->EquippedWeapon->GetWeaponMesh())
+		{
+			Combat->EquippedWeapon->GetWeaponMesh()->bOwnerNoSee = false;
+		}
+	}
 }
 
 

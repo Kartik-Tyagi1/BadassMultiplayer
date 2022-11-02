@@ -167,6 +167,14 @@ void UCombatComponent::TraceUnderCrosshairs(FHitResult& HitResult)
 	);
 
 	FVector Start = CrosshairWorldPosition;
+
+	// Move trace start in front of the character so we don't target ourselves or players behind us
+	if (Character)
+	{
+		float DistanceToCharacter = (Character->GetActorLocation() - Start).Size();
+		Start += CrosshairWorldDirection * (DistanceToCharacter + 100.f);
+	}
+
 	FVector End = Start + CrosshairWorldDirection * TRACE_LENGTH;
 
 	GetWorld()->LineTraceSingleByChannel(
