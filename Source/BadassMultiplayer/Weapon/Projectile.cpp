@@ -5,6 +5,8 @@
 #include "Particles/ParticleSystem.h"
 #include "Particles/ParticleSystemComponent.h"
 #include "Sound/SoundCue.h"
+#include "BadassMultiplayer/Character/MultiplayerCharacter.h"
+#include "BadassMultiplayer/BadassMultiplayer.h"
 
 AProjectile::AProjectile()
 {
@@ -17,8 +19,9 @@ AProjectile::AProjectile()
 	CollisionBox->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	CollisionBox->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
 	CollisionBox->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Block); // Block Visible Objects (aka not the camera)
-	CollisionBox->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldStatic, ECollisionResponse::ECR_Block); // Static meshes like walls and stuff
-	
+	CollisionBox->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldStatic, ECollisionResponse::ECR_Block); // Block Static meshes like walls and stuff
+	CollisionBox->SetCollisionResponseToChannel(ECC_SkeletalMesh, ECollisionResponse::ECR_Block); // Block character mesh instead of mesh and capsule
+
 	ProjectileMovementComp = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovementComponent"));
 	ProjectileMovementComp->bRotationFollowsVelocity = true;
 }
@@ -47,8 +50,15 @@ void AProjectile::BeginPlay()
 	
 }
 
+
+// This only gets called on the server
 void AProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
+	AMultiplayerCharacter* Character = Cast<AMultiplayerCharacter>(OtherActor);
+	if (Character)
+	{
+		Character->PlayMulticastHitReact();
+	}
 	Destroy();
 }
 

@@ -13,6 +13,7 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "Multiplayer_AnimInstance.h"
 #include "Animation/AnimMontage.h"
+#include "BadassMultiplayer/BadassMultiplayer.h"
 
 
 AMultiplayerCharacter::AMultiplayerCharacter() :
@@ -44,6 +45,7 @@ AMultiplayerCharacter::AMultiplayerCharacter() :
 	GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
 
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
+	GetMesh()->SetCollisionObjectType(ECC_SkeletalMesh);
 	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
 	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Block);
 
@@ -373,6 +375,7 @@ void AMultiplayerCharacter::TurnInPlace(float DeltaTime)
 
 void AMultiplayerCharacter::PlayFireMontage(bool bIsAiming)
 {
+	// Dont play any animation if the character doesn't have a weapon
 	if (Combat == nullptr || Combat->EquippedWeapon == nullptr) return;
 
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
@@ -389,6 +392,25 @@ FVector AMultiplayerCharacter::GetHitTarget() const
 	if (Combat == nullptr) return FVector();
 
 	return Combat->HitTarget;
+}
+
+void AMultiplayerCharacter::PlayHitReactMontage()
+{
+	// Dont play any animation if the character doesn't have a weapon
+	if (Combat == nullptr || Combat->EquippedWeapon == nullptr) return;
+
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance && FireWeaponMontage)
+	{
+		AnimInstance->Montage_Play(FireWeaponMontage);
+		FName FireSectionName("HitFromFront");
+		AnimInstance->Montage_JumpToSection(FireSectionName);
+	}
+}
+
+void AMultiplayerCharacter::PlayMulticastHitReact_Implementation()
+{
+	PlayHitReactMontage();
 }
 
 

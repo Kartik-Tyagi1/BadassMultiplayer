@@ -52,6 +52,8 @@ protected:
 	void CalculateAO(float DeltaTime);
 	void TurnInPlace(float DeltaTime);
 
+	void PlayHitReactMontage();
+
 private:
 	UPROPERTY(VisibleAnywhere, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	UCameraComponent* Camera;
@@ -108,6 +110,10 @@ private:
 	UPROPERTY(EditAnywhere, Category = Combat)
 	UAnimMontage* FireWeaponMontage;
 
+	// Section to determine which react animation to use depending on which side the hit came from
+	UPROPERTY(EditAnywhere, Category = Combat)
+	UAnimMontage* HitReactMontage;
+
 	UPROPERTY(EditAnywhere, Category = Combat)
 	float CameraThreshold = 200.f;
 
@@ -127,6 +133,11 @@ public:
 	void PlayFireMontage(bool bIsAiming);
 	FVector GetHitTarget() const;
 	UCameraComponent* GetCamera() { return Camera; }
+
+
+	// We can make hit react anims unreliable cause it a visual thing -> Not so important 
+	UFUNCTION(NetMulticast, Unreliable)
+	void PlayMulticastHitReact();
 
 
 };
