@@ -95,10 +95,27 @@ void AMultiplayerCharacter::PostInitializeComponents()
 	}
 }
 
+
 void AMultiplayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	CalculateAO(DeltaTime);
+
+	// Greater than compares the enum values
+	if (GetLocalRole() > ENetRole::ROLE_SimulatedProxy && IsLocallyControlled())
+	{
+		// This happens on the locally controlled player
+		CalculateAO(DeltaTime);
+	}
+	else
+	{
+		TimeSinceLastMovementRep += DeltaTime;
+		if (TimeSinceLastMovementRep > 0.25f)
+		{
+			OnRep_ReplicatedMovement();
+		}
+		CalculateAOPitch();
+	}
+
 	HideCamera();
 }
 
@@ -305,18 +322,25 @@ AWeapon* AMultiplayerCharacter::GetEquippedWeapon()
 	return Combat->EquippedWeapon;
 }
 
+void AMultiplayerCharacter::OnRep_ReplicatedMovement()
+{
+	// Since this is replicated when sim proxy movement is changed then we dont need to call this in tick
+	Super::OnRep_ReplicatedMovement();
+	SimProxiesTurnInPlace();
+	TimeSinceLastMovementRep = 0.f;
+}
+
 void AMultiplayerCharacter::CalculateAO(float DeltaTime)
 {
 	if (Combat && Combat->EquippedWeapon == nullptr) return;
 
-	FVector Velocity = GetVelocity();
-	Velocity.Z = 0.f;
-	float Speed = Velocity.Size();
+	float Speed = CalculateSpeed();
 
 	bool bIsInAir = GetCharacterMovement()->IsFalling();
 
 	if (Speed == 0 && !bIsInAir) // Not Moving or Jumping
 	{
+		bRotateRootBone = true;
 		FRotator CurrentAimRotation = FRotator(0.f, GetBaseAimRotation().Yaw, 0.f);
 		const FRotator DeltaRotation = UKismetMathLibrary::NormalizedDeltaRotator(CurrentAimRotation, StartingAimRotation);
 		AO_Yaw = DeltaRotation.Yaw;
@@ -331,21 +355,15 @@ void AMultiplayerCharacter::CalculateAO(float DeltaTime)
 	}
 	if (Speed > 0.f || bIsInAir) // Moving or Jumping
 	{
+		bRotateRootBone = false;
 		StartingAimRotation = FRotator(0.f, GetBaseAimRotation().Yaw, 0.f);
 		AO_Yaw = 0.f;
 		bUseControllerRotationYaw = true;
 		TurningState = ETurningState::ETIP_Still;
 	}
 
-	AO_Pitch = GetBaseAimRotation().Pitch;
-	// Rotation data is compressed before it is sent across the network, and this causes any negative angles values
-	// To become unsigned so we need to map them back to original values
-	if (AO_Pitch > 90.f && !IsLocallyControlled())
-	{
-		FVector2D InRange(270.f, 360.f);
-		FVector2D OutRange(-90.f, 0.f);
-		AO_Pitch = FMath::GetMappedRangeValueClamped(InRange, OutRange, AO_Pitch);
-	}
+	CalculateAOPitch();
+	
 }
 
 void AMultiplayerCharacter::TurnInPlace(float DeltaTime)
@@ -372,6 +390,57 @@ void AMultiplayerCharacter::TurnInPlace(float DeltaTime)
 	}
 
 }
+
+void AMultiplayerCharacter::CalculateAOPitch()
+{
+	AO_Pitch = GetBaseAimRotation().Pitch;
+	// Rotation data is compressed before it is sent across the network, and this causes any negative angles values
+	// To become unsigned so we need to map them back to original values
+	if (AO_Pitch > 90.f && !IsLocallyControlled())
+	{
+		FVector2D InRange(270.f, 360.f);
+		FVector2D OutRange(-90.f, 0.f);
+		AO_Pitch = FMath::GetMappedRangeValueClamped(InRange, OutRange, AO_Pitch);
+	}
+}
+
+void AMultiplayerCharacter::SimProxiesTurnInPlace()
+{
+	if (Combat == nullptr || Combat->EquippedWeapon == nullptr) return;
+	bRotateRootBone = false;
+	float Speed = CalculateSpeed();
+	if(Speed > 0.f)
+	{
+		TurningState = ETurningState::ETIP_Still;
+		return;
+	}
+	CalculateAOPitch();
+
+	// Turn in Place
+	SimProxyRotationLastFrame = SimProxyRotationCurrent;
+	SimProxyRotationCurrent = GetActorRotation();
+	SimYawDelta = UKismetMathLibrary::NormalizedDeltaRotator(SimProxyRotationCurrent, SimProxyRotationLastFrame).Yaw;
+	if (FMath::Abs(SimYawDelta) > TurnThreshold)
+	{
+		if (SimYawDelta > TurnThreshold)
+		{
+			TurningState = ETurningState::ETIP_Right;
+		}
+		else if (SimYawDelta < -TurnThreshold)
+		{
+			TurningState = ETurningState::ETIP_Left;
+		}
+		else
+		{
+			TurningState = ETurningState::ETIP_Still;
+		}
+		return;
+	}
+
+	TurningState = ETurningState::ETIP_Still;
+}
+
+
 
 void AMultiplayerCharacter::PlayFireMontage(bool bIsAiming)
 {
@@ -434,6 +503,13 @@ void AMultiplayerCharacter::HideCamera()
 			Combat->EquippedWeapon->GetWeaponMesh()->bOwnerNoSee = false;
 		}
 	}
+}
+
+float AMultiplayerCharacter::CalculateSpeed()
+{
+	FVector Velocity = GetVelocity();
+	Velocity.Z = 0.f;
+	return Velocity.Size();
 }
 
 

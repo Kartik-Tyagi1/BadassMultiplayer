@@ -33,6 +33,9 @@ public:
 	/* Earliest place that allow us to access components attached to this character and set values */
 	virtual void PostInitializeComponents() override;
 
+	/* Runs when player movement gets replicated */
+	virtual void OnRep_ReplicatedMovement() override;
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -51,6 +54,8 @@ protected:
 
 	void CalculateAO(float DeltaTime);
 	void TurnInPlace(float DeltaTime);
+	void CalculateAOPitch();
+	void SimProxiesTurnInPlace();
 
 	void PlayHitReactMontage();
 
@@ -119,11 +124,22 @@ private:
 
 	void HideCamera();
 
+	// Determine if the root bone should rotate. Should only happen for locally controlled players
+	bool bRotateRootBone;
+
+	float TurnThreshold = 0.5f;
+	FRotator SimProxyRotationLastFrame;
+	FRotator SimProxyRotationCurrent;
+	float SimYawDelta;
+	float TimeSinceLastMovementRep;
+	float CalculateSpeed();
+
 // INLINES
 public:
 	FORCEINLINE float GetAO_Yaw() const { return AO_Yaw; }
 	FORCEINLINE float GetAO_Pitch() const { return AO_Pitch; }
 	FORCEINLINE ETurningState GetTurningState() const { return TurningState; }
+	FORCEINLINE bool ShouldRotateRootBone() const { return bRotateRootBone; }
 
 public:
 	void SetOverlappingWeapon(AWeapon* Weapon);
