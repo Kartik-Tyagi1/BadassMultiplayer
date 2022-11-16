@@ -68,7 +68,8 @@ void AMultiplayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>
 	* Meaning we only want a widget to show on the client who overlaps. Other clients don't need to see the other's pickup widget
 	*		DOREPLIFETIME(AMultiplayerCharacter, OverlappingWeapon);
 	*/ 
-
+	DOREPLIFETIME(AMultiplayerCharacter, Health);
+	
 	/*
 	* To only have the OverlappingWeapon replicated on the client we have to specify a condition to only replicate there.
 	* COND_OwnerOnly is the owner of the pawn on that owner's machine
@@ -76,6 +77,7 @@ void AMultiplayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>
 	* To fix this we use RepNotifies (look at .h file)
 	*/
 	DOREPLIFETIME_CONDITION(AMultiplayerCharacter, OverlappingWeapon, COND_OwnerOnly);
+	
 }
 
 void AMultiplayerCharacter::BeginPlay()
@@ -510,6 +512,10 @@ float AMultiplayerCharacter::CalculateSpeed()
 	FVector Velocity = GetVelocity();
 	Velocity.Z = 0.f;
 	return Velocity.Size();
+}
+
+void AMultiplayerCharacter::OnRep_Health()
+{
 }
 
 

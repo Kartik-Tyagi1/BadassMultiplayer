@@ -59,6 +59,8 @@ protected:
 
 	void InterpFOV(float DeltaTime); 
 
+	void Fire();
+
 private:
 	AMultiplayerCharacter* Character;
 
@@ -96,6 +98,11 @@ private:
 	UPROPERTY(EditAnywhere, Category = Aiming)
 	float ZoomUninterpSpeed = 20.f;
 
+	/* Automatic Fire */
+	FTimerHandle FireTimer;
+	bool bCanFire = true;
+	void StartFireTimer();
+	void EndFireTimer();
 
 public:	
 		

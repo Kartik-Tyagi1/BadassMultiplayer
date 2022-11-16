@@ -22,6 +22,9 @@ public:
 /**
  * 
  */
+
+class UCharacterOverlay;
+
 UCLASS()
 class BADASSMULTIPLAYER_API ABadassHUD : public AHUD
 {
@@ -29,6 +32,15 @@ class BADASSMULTIPLAYER_API ABadassHUD : public AHUD
 
 public:
 	virtual void DrawHUD() override;
+
+	UPROPERTY(EditAnywhere, Category="Player Stats")
+	TSubclassOf<UUserWidget> CharacterOverlayClass;
+
+	UCharacterOverlay* CharacterOverlay;
+
+protected:
+	virtual void BeginPlay() override;
+	void AddCharacterOverlay();
 
 private:
 	FHUDPackage HUDPackage;

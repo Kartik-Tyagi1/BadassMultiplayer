@@ -8,6 +8,7 @@
 #include "DrawDebugHelpers.h"
 #include "BadassMultiplayer/PlayerController/MPPlayerController.h"
 #include "Camera/CameraComponent.h"
+#include "TimerManager.h"
 
 
 UCombatComponent::UCombatComponent():
@@ -17,7 +18,6 @@ UCombatComponent::UCombatComponent():
 	PrimaryComponentTick.bCanEverTick = true;
 
 }
-
 
 void UCombatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
@@ -60,6 +60,91 @@ void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 
 }
 
+void UCombatComponent::EquipWeapon(AWeapon* WeaponToEquip)
+{
+	if (Character == nullptr || WeaponToEquip == nullptr) return;
+
+	EquippedWeapon = WeaponToEquip;
+	EquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
+
+	const USkeletalMeshSocket* RightHandSocket = Character->GetMesh()->GetSocketByName(FName("RightHandSocket"));
+	if (RightHandSocket)
+	{
+		RightHandSocket->AttachActor(EquippedWeapon, Character->GetMesh());
+	}
+
+	// The Owner is a built in replicated variable. So when we change the owner, it will be replicated across clients
+	EquippedWeapon->SetOwner(Character);
+	Character->GetCharacterMovement()->bOrientRotationToMovement = false;
+	Character->bUseControllerRotationYaw = true;
+}
+
+void UCombatComponent::OnRep_EquippedWeapon()
+{
+	if (EquippedWeapon && Character)
+	{
+		Character->GetCharacterMovement()->bOrientRotationToMovement = false;
+		Character->bUseControllerRotationYaw = true;
+	}
+}
+
+void UCombatComponent::FireButtonPressed(bool bFireIsPressed)
+{
+	bFireButtonPressed = bFireIsPressed;
+	if (bFireButtonPressed && EquippedWeapon)
+	{
+		Fire();
+	}
+	
+}
+
+void UCombatComponent::Fire()
+{
+	if (bCanFire)
+	{
+		bCanFire = false;
+		// Only trace when fire button is pressed then send the hit target (impact point) to the RPC's to do all the weapon firing across machines
+		ServerFire(HitTarget);
+
+		if (EquippedWeapon)
+		{
+			CrosshairShootingFactor = 1.f;
+		}
+
+		StartFireTimer();
+	}
+}
+
+void UCombatComponent::StartFireTimer()
+{
+	if (EquippedWeapon == nullptr || Character == nullptr) return;
+
+	Character->GetWorldTimerManager().SetTimer(FireTimer, this, &ThisClass::EndFireTimer, EquippedWeapon->FireDelay);
+}
+
+void UCombatComponent::EndFireTimer()
+{
+	bCanFire = true;
+	if (bFireButtonPressed && EquippedWeapon->bIsAutomatic)
+	{
+		Fire();
+	}
+}
+
+void UCombatComponent::ServerFire_Implementation(const FVector_NetQuantize& TraceHitTarget)
+{
+	NetMulticastFire(TraceHitTarget);
+}
+
+void UCombatComponent::NetMulticastFire_Implementation(const FVector_NetQuantize& TraceHitTarget)
+{
+	if (EquippedWeapon == nullptr) return;
+	if (Character)
+	{
+		Character->PlayFireMontage(bIsAiming);
+		EquippedWeapon->FireWeapon(TraceHitTarget);
+	}
+}
 
 void UCombatComponent::SetIsAiming(bool bAiming)
 {
@@ -83,69 +168,6 @@ void UCombatComponent::ServerSetIsAiming_Implementation(bool bAiming)
 	{
 		Character->GetCharacterMovement()->MaxWalkSpeed = bAiming ? AimWalkSpeed : BaseWalkSpeed;
 	}
-}
-
-void UCombatComponent::OnRep_EquippedWeapon()
-{
-	if (EquippedWeapon && Character)
-	{
-		Character->GetCharacterMovement()->bOrientRotationToMovement = false;
-		Character->bUseControllerRotationYaw = true;
-	}
-}
-
-void UCombatComponent::FireButtonPressed(bool bFireIsPressed)
-{
-	bFireButtonPressed = bFireIsPressed;
-	if (bFireButtonPressed)
-	{
-		// Only trace when fire button is pressed then send the hit target (impact point) to the RPC's to do all the weapon firing across machines
-		FHitResult HitResult;
-		TraceUnderCrosshairs(HitResult);
-		ServerFire(HitResult.ImpactPoint);
-
-		if (EquippedWeapon)
-		{
-			CrosshairShootingFactor = 1.f;
-		}
-	}
-	
-}
-
-
-void UCombatComponent::ServerFire_Implementation(const FVector_NetQuantize& TraceHitTarget)
-{
-	NetMulticastFire(TraceHitTarget);
-}
-
-void UCombatComponent::NetMulticastFire_Implementation(const FVector_NetQuantize& TraceHitTarget)
-{
-	if (EquippedWeapon == nullptr) return;
-	if (Character)
-	{
-		Character->PlayFireMontage(bIsAiming);
-		EquippedWeapon->FireWeapon(TraceHitTarget);
-	}
-}
-
-
-void UCombatComponent::EquipWeapon(AWeapon* WeaponToEquip)
-{
-	if (Character == nullptr || WeaponToEquip == nullptr) return;
-
-	EquippedWeapon = WeaponToEquip;
-	EquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
-
-	const USkeletalMeshSocket* RightHandSocket = Character->GetMesh()->GetSocketByName(FName("RightHandSocket"));
-	if (RightHandSocket)
-	{
-		RightHandSocket->AttachActor(EquippedWeapon, Character->GetMesh());
-	}
-
-	// The Owner is a built in replicated variable. So when we change the owner, it will be replicated across clients
-	EquippedWeapon->SetOwner(Character);
-	Character->GetCharacterMovement()->bOrientRotationToMovement = false;
-	Character->bUseControllerRotationYaw = true;
 }
 
 void UCombatComponent::TraceUnderCrosshairs(FHitResult& HitResult)
@@ -276,6 +298,8 @@ void UCombatComponent::InterpFOV(float DeltaTime)
 	}
 
 }
+
+
 
 
 
