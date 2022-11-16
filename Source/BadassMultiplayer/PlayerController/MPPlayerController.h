@@ -7,9 +7,20 @@
 /**
  * 
  */
+
+class ABadassHUD;
+
 UCLASS()
 class BADASSMULTIPLAYER_API AMPPlayerController : public APlayerController
 {
 	GENERATED_BODY()
-	
+
+public:
+	void SetHUDHealthStats(float Health, float MaxHealth);
+
+protected:
+	virtual void BeginPlay() override;
+
+private:
+	ABadassHUD* BadassHUD;
 };

@@ -14,6 +14,7 @@
 #include "Multiplayer_AnimInstance.h"
 #include "Animation/AnimMontage.h"
 #include "BadassMultiplayer/BadassMultiplayer.h"
+#include "BadassMultiplayer/PlayerController/MPPlayerController.h"
 
 
 AMultiplayerCharacter::AMultiplayerCharacter() :
@@ -84,6 +85,12 @@ void AMultiplayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	StartingAimRotation = GetBaseAimRotation();	
+
+	MPPlayerController = Cast<AMPPlayerController>(Controller);
+	if (MPPlayerController)
+	{
+		MPPlayerController->SetHUDHealthStats(Health, MaxHealth);
+	}
 }
 
 void AMultiplayerCharacter::PostInitializeComponents()

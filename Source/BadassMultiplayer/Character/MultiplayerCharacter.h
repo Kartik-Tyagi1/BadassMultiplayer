@@ -14,6 +14,7 @@ class UWidgetComponent;
 class AWeapon;
 class UCombatComponent;
 class UAnimMontage;
+class AMPPlayerController;
 
 UCLASS()
 class BADASSMULTIPLAYER_API AMultiplayerCharacter : public ACharacter, public ICrosshairsInterface
@@ -142,6 +143,8 @@ private:
 	UFUNCTION()
 	void OnRep_Health();
 
+	/* PlayerController */
+	AMPPlayerController* MPPlayerController;
 
 // INLINES
 public:
