@@ -60,6 +60,9 @@ protected:
 
 	void PlayHitReactMontage();
 
+	UFUNCTION()
+	void RecieveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, class AController* InstigatorController, AActor* DamageCauser);
+	void UpdateHUDHealth();
 private:
 	UPROPERTY(VisibleAnywhere, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	UCameraComponent* Camera;
@@ -161,11 +164,4 @@ public:
 	void PlayFireMontage(bool bIsAiming);
 	FVector GetHitTarget() const;
 	UCameraComponent* GetCamera() { return Camera; }
-
-
-	// We can make hit react anims unreliable cause it a visual thing -> Not so important 
-	UFUNCTION(NetMulticast, Unreliable)
-	void PlayMulticastHitReact();
-
-
 };

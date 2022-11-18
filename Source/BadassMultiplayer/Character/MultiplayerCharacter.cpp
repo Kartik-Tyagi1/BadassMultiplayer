@@ -86,11 +86,13 @@ void AMultiplayerCharacter::BeginPlay()
 	Super::BeginPlay();
 	StartingAimRotation = GetBaseAimRotation();	
 
-	MPPlayerController = Cast<AMPPlayerController>(Controller);
-	if (MPPlayerController)
+	if (HasAuthority())
 	{
-		MPPlayerController->SetHUDHealthStats(Health, MaxHealth);
+		// Only handle damage events on the server
+		OnTakeAnyDamage.AddDynamic(this, &ThisClass::RecieveDamage);
 	}
+
+	UpdateHUDHealth();
 }
 
 void AMultiplayerCharacter::PostInitializeComponents()
@@ -103,7 +105,6 @@ void AMultiplayerCharacter::PostInitializeComponents()
 		Combat->Character = this;
 	}
 }
-
 
 void AMultiplayerCharacter::Tick(float DeltaTime)
 {
@@ -225,7 +226,6 @@ void AMultiplayerCharacter::SetOverlappingWeapon(AWeapon* Weapon)
 
 }
 
-
 void AMultiplayerCharacter::OnRep_OverlappingWeapon(AWeapon* LastWeapon)
 {
 	// In this case the last value will be null since on the overlap this will be set to the overlapping weapon
@@ -313,7 +313,6 @@ void AMultiplayerCharacter::ServerEquipButtonPressed_Implementation()
 		Combat->EquipWeapon(OverlappingWeapon);
 	}
 }
-
 
 bool AMultiplayerCharacter::IsWeaponEquipped()
 {
@@ -449,8 +448,6 @@ void AMultiplayerCharacter::SimProxiesTurnInPlace()
 	TurningState = ETurningState::ETIP_Still;
 }
 
-
-
 void AMultiplayerCharacter::PlayFireMontage(bool bIsAiming)
 {
 	// Dont play any animation if the character doesn't have a weapon
@@ -486,11 +483,22 @@ void AMultiplayerCharacter::PlayHitReactMontage()
 	}
 }
 
-void AMultiplayerCharacter::PlayMulticastHitReact_Implementation()
+void AMultiplayerCharacter::RecieveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, AController* InstigatorController, AActor* DamageCauser)
 {
-	PlayHitReactMontage();
+	Health = FMath::Clamp(Health - Damage, 0.f, MaxHealth);
+	// On Server
+	UpdateHUDHealth();
+	PlayHitReactMontage(); 
 }
 
+void AMultiplayerCharacter::UpdateHUDHealth()
+{
+	MPPlayerController = Cast<AMPPlayerController>(Controller);
+	if (MPPlayerController)
+	{
+		MPPlayerController->SetHUDHealthStats(Health, MaxHealth);
+	}
+}
 
 void AMultiplayerCharacter::HideCamera()
 {
@@ -523,6 +531,10 @@ float AMultiplayerCharacter::CalculateSpeed()
 
 void AMultiplayerCharacter::OnRep_Health()
 {
+	// Since Health is set up to replicate, we can use it instead of an RPC to play the hitReacts
+	// On Clients
+	UpdateHUDHealth();
+	PlayHitReactMontage(); 
 }
 
 

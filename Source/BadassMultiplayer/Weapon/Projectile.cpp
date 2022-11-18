@@ -54,11 +54,6 @@ void AProjectile::BeginPlay()
 // This only gets called on the server
 void AProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
-	AMultiplayerCharacter* Character = Cast<AMultiplayerCharacter>(OtherActor);
-	if (Character)
-	{
-		Character->PlayMulticastHitReact();
-	}
 	Destroy();
 }
 
