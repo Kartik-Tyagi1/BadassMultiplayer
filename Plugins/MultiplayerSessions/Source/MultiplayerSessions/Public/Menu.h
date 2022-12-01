@@ -24,7 +24,7 @@ protected:
 	virtual bool Initialize() override;
 
 	/* Removes widget from the level if the level is switched to another */
-	virtual void OnLevelRemovedFromWorld(ULevel* InLevel, UWorld* InWorld) override;
+	virtual void NativeDestruct() override;
 
 	//
 	//Callback for the MultiplayerSessionSubsystem Delegates

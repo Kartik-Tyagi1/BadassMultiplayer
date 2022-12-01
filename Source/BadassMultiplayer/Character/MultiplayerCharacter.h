@@ -59,10 +59,13 @@ protected:
 	void SimProxiesTurnInPlace();
 
 	void PlayHitReactMontage();
+	void PlayElimMontage();
 
 	UFUNCTION()
 	void RecieveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, class AController* InstigatorController, AActor* DamageCauser);
 	void UpdateHUDHealth();
+
+
 private:
 	UPROPERTY(VisibleAnywhere, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	UCameraComponent* Camera;
@@ -124,6 +127,9 @@ private:
 	UAnimMontage* HitReactMontage;
 
 	UPROPERTY(EditAnywhere, Category = Combat)
+	UAnimMontage* ElimMontage;
+
+	UPROPERTY(EditAnywhere, Category = Combat)
 	float CameraThreshold = 200.f;
 
 	void HideCamera();
@@ -149,6 +155,8 @@ private:
 	/* PlayerController */
 	AMPPlayerController* MPPlayerController;
 
+	bool bIsEliminated = false;
+
 // INLINES
 public:
 	FORCEINLINE float GetAO_Yaw() const { return AO_Yaw; }
@@ -164,4 +172,8 @@ public:
 	void PlayFireMontage(bool bIsAiming);
 	FVector GetHitTarget() const;
 	UCameraComponent* GetCamera() { return Camera; }
+
+	UFUNCTION(NetMulticast, Reliable)
+	void Eliminated();
+	bool GetIsEliminated() const { return bIsEliminated; }
 };

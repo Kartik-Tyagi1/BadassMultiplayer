@@ -13,10 +13,10 @@ void UOverheadWidget::SetDisplayText(FString TextToDisplay)
 	}
 }
 
-void UOverheadWidget::OnLevelRemovedFromWorld(ULevel* InLevel, UWorld* InWorld)
+void UOverheadWidget::NativeDestruct()
 {
 	RemoveFromParent();
-	Super::OnLevelRemovedFromWorld(InLevel, InWorld);
+	Super::NativeDestruct();
 }
 
 

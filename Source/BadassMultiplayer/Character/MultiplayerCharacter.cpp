@@ -15,6 +15,7 @@
 #include "Animation/AnimMontage.h"
 #include "BadassMultiplayer/BadassMultiplayer.h"
 #include "BadassMultiplayer/PlayerController/MPPlayerController.h"
+#include "BadassMultiplayer/GameModes/BamGameMode.h"
 
 
 AMultiplayerCharacter::AMultiplayerCharacter() :
@@ -469,6 +470,7 @@ FVector AMultiplayerCharacter::GetHitTarget() const
 	return Combat->HitTarget;
 }
 
+
 void AMultiplayerCharacter::PlayHitReactMontage()
 {
 	// Dont play any animation if the character doesn't have a weapon
@@ -483,12 +485,33 @@ void AMultiplayerCharacter::PlayHitReactMontage()
 	}
 }
 
+void AMultiplayerCharacter::PlayElimMontage()
+{
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance && ElimMontage)
+	{
+		AnimInstance->Montage_Play(ElimMontage);
+	}
+}
+
 void AMultiplayerCharacter::RecieveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, AController* InstigatorController, AActor* DamageCauser)
 {
 	Health = FMath::Clamp(Health - Damage, 0.f, MaxHealth);
 	// On Server
 	UpdateHUDHealth();
 	PlayHitReactMontage(); 
+
+	// Elimination will be handled in the GameMode
+	if (Health == 0.f)
+	{
+		ABamGameMode* BamGameMode = GetWorld()->GetAuthGameMode<ABamGameMode>();
+		if (BamGameMode)
+		{
+			MPPlayerController = MPPlayerController == nullptr ? Cast<AMPPlayerController>(Controller) : MPPlayerController;
+			AMPPlayerController* AttackerPlayerController = Cast< AMPPlayerController>(InstigatorController);
+			BamGameMode->PlayerEliminated(this, MPPlayerController, AttackerPlayerController);
+		}
+	}
 }
 
 void AMultiplayerCharacter::UpdateHUDHealth()
@@ -498,6 +521,12 @@ void AMultiplayerCharacter::UpdateHUDHealth()
 	{
 		MPPlayerController->SetHUDHealthStats(Health, MaxHealth);
 	}
+}
+
+void AMultiplayerCharacter::Eliminated_Implementation()
+{
+	bIsEliminated = true;
+	PlayElimMontage();
 }
 
 void AMultiplayerCharacter::HideCamera()
