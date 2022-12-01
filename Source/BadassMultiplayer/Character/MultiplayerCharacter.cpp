@@ -477,11 +477,11 @@ void AMultiplayerCharacter::PlayHitReactMontage()
 	if (Combat == nullptr || Combat->EquippedWeapon == nullptr) return;
 
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
-	if (AnimInstance && FireWeaponMontage)
+	if (AnimInstance && HitReactMontage)
 	{
-		AnimInstance->Montage_Play(FireWeaponMontage);
-		FName FireSectionName("HitFromFront");
-		AnimInstance->Montage_JumpToSection(FireSectionName);
+		AnimInstance->Montage_Play(HitReactMontage);
+		FName SectionName("HitFromFront");
+		AnimInstance->Montage_JumpToSection(SectionName);
 	}
 }
 
