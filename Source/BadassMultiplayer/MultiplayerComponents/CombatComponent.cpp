@@ -83,6 +83,14 @@ void UCombatComponent::OnRep_EquippedWeapon()
 {
 	if (EquippedWeapon && Character)
 	{
+		// This needs to be done here in case the weapon state isn't set. Calling it here makes the variable replicate across clients before the weapon is attached
+		EquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
+		const USkeletalMeshSocket* RightHandSocket = Character->GetMesh()->GetSocketByName(FName("RightHandSocket"));
+		if (RightHandSocket)
+		{
+			RightHandSocket->AttachActor(EquippedWeapon, Character->GetMesh());
+		}
+
 		Character->GetCharacterMovement()->bOrientRotationToMovement = false;
 		Character->bUseControllerRotationYaw = true;
 	}

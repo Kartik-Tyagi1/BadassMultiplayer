@@ -39,6 +39,8 @@ public:
 
 	virtual void FireWeapon(const FVector& HitTarget);
 
+	void DropWeapon();
+
 protected:
 	virtual void BeginPlay() override;
 

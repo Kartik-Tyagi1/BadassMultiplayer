@@ -527,6 +527,11 @@ void AMultiplayerCharacter::UpdateHUDHealth()
 
 void AMultiplayerCharacter::Eliminated()
 {
+	if (Combat && Combat->EquippedWeapon)
+	{
+		Combat->EquippedWeapon->DropWeapon();
+	}
+
 	// Call Elimination on server and clients
 	MulticastEliminated();
 
@@ -539,6 +544,7 @@ void AMultiplayerCharacter::MulticastEliminated_Implementation()
 	bIsEliminated = true;
 	PlayElimMontage();
 
+	// Dissolve Effect
 	if (DissolveMaterialInstance)
 	{
 		DynamicDissolveMaterialInstance = UMaterialInstanceDynamic::Create(DissolveMaterialInstance, this);
@@ -547,6 +553,17 @@ void AMultiplayerCharacter::MulticastEliminated_Implementation()
 		DynamicDissolveMaterialInstance->SetScalarParameterValue(TEXT("Glow"), 300.f);
 	}
 	StartDissolve();
+
+	// Stop Player Input/Movement
+	GetCharacterMovement()->DisableMovement();
+	GetCharacterMovement()->StopMovementImmediately();
+	if (MPPlayerController)
+	{
+		DisableInput(MPPlayerController);
+	}
+	// Stop Collisions
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
 void AMultiplayerCharacter::EndRespawnTimer()
