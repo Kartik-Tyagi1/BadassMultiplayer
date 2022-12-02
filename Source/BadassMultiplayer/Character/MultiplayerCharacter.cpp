@@ -59,6 +59,8 @@ AMultiplayerCharacter::AMultiplayerCharacter() :
 
 	GetCharacterMovement()->RotationRate = FRotator(0.f, 0.f, 850.f);
 
+	DissolveTimeline = CreateDefaultSubobject<UTimelineComponent>(TEXT("DissolveTimelineComponent"));
+
 
 }
 
@@ -536,6 +538,15 @@ void AMultiplayerCharacter::MulticastEliminated_Implementation()
 {
 	bIsEliminated = true;
 	PlayElimMontage();
+
+	if (DissolveMaterialInstance)
+	{
+		DynamicDissolveMaterialInstance = UMaterialInstanceDynamic::Create(DissolveMaterialInstance, this);
+		GetMesh()->SetMaterial(0, DynamicDissolveMaterialInstance);
+		DynamicDissolveMaterialInstance->SetScalarParameterValue(TEXT("Dissolve"), 0.55f);
+		DynamicDissolveMaterialInstance->SetScalarParameterValue(TEXT("Glow"), 300.f);
+	}
+	StartDissolve();
 }
 
 void AMultiplayerCharacter::EndRespawnTimer()
@@ -546,6 +557,7 @@ void AMultiplayerCharacter::EndRespawnTimer()
 		BamGameMode->RequestPlayerRespawn(this, Controller);
 	}
 }
+
 
 void AMultiplayerCharacter::HideCamera()
 {
@@ -582,6 +594,24 @@ void AMultiplayerCharacter::OnRep_Health()
 	// On Clients
 	UpdateHUDHealth();
 	PlayHitReactMontage(); 
+}
+
+void AMultiplayerCharacter::UpdateDissolveMaterial(float DissolveValue)
+{
+	if (DynamicDissolveMaterialInstance)
+	{
+		DynamicDissolveMaterialInstance->SetScalarParameterValue(TEXT("Dissolve"), DissolveValue);
+	}
+}
+
+void AMultiplayerCharacter::StartDissolve()
+{
+	DissolveTrack.BindDynamic(this, &AMultiplayerCharacter::UpdateDissolveMaterial);
+	if (DissolveCurve && DissolveTimeline)
+	{
+		DissolveTimeline->AddInterpFloat(DissolveCurve, DissolveTrack);
+		DissolveTimeline->Play();
+	}
 }
 
 

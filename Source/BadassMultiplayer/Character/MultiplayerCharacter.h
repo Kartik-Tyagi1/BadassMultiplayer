@@ -6,6 +6,7 @@
 #include "GameFramework/Character.h"
 #include "BadassMultiplayer/Types/TurningInPlace.h"
 #include "BadassMultiplayer/Interfaces/CrosshairsInterface.h"
+#include "Components/TimelineComponent.h"
 #include "MultiplayerCharacter.generated.h"
 
 class UCameraComponent;
@@ -157,10 +158,36 @@ private:
 
 	/*********************** ELIMINATION AND RESPAWN *************************/
 	bool bIsEliminated = false;
+
 	FTimerHandle RespawnTimer;
+
 	UPROPERTY(EditDefaultsOnly)
 	float RespawnDelay = 3.f;
+
 	void EndRespawnTimer();
+
+	/*********************** DISSOLVE EFFECT *************************/
+	UPROPERTY(VisibleAnywhere)
+	UTimelineComponent* DissolveTimeline;
+
+	FOnTimelineFloat DissolveTrack;
+
+	UFUNCTION()
+	void UpdateDissolveMaterial(float DissolveValue);
+
+	void StartDissolve();
+
+	UPROPERTY(EditAnywhere)
+	UCurveFloat* DissolveCurve;
+
+	// Created At Runtime
+	UPROPERTY(VisibleAnywhere, Category = Eliminated)
+	UMaterialInstanceDynamic* DynamicDissolveMaterialInstance;
+
+	// Assigned in Blueprint and used with Dynamic Instance
+	UPROPERTY(EditAnywhere, Category = Eliminated)
+	UMaterialInstance* DissolveMaterialInstance;
+
 
 // INLINES
 public:
