@@ -155,7 +155,12 @@ private:
 	/* PlayerController */
 	AMPPlayerController* MPPlayerController;
 
+	/*********************** ELIMINATION AND RESPAWN *************************/
 	bool bIsEliminated = false;
+	FTimerHandle RespawnTimer;
+	UPROPERTY(EditDefaultsOnly)
+	float RespawnDelay = 3.f;
+	void EndRespawnTimer();
 
 // INLINES
 public:
@@ -173,7 +178,12 @@ public:
 	FVector GetHitTarget() const;
 	UCameraComponent* GetCamera() { return Camera; }
 
-	UFUNCTION(NetMulticast, Reliable)
+	// Server Eliminination Stuff
 	void Eliminated();
+
+	// Server and Client Elimination Stuff
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastEliminated();
+
 	bool GetIsEliminated() const { return bIsEliminated; }
 };

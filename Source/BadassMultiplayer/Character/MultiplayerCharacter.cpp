@@ -16,6 +16,7 @@
 #include "BadassMultiplayer/BadassMultiplayer.h"
 #include "BadassMultiplayer/PlayerController/MPPlayerController.h"
 #include "BadassMultiplayer/GameModes/BamGameMode.h"
+#include "TimerManager.h"
 
 
 AMultiplayerCharacter::AMultiplayerCharacter() :
@@ -470,7 +471,6 @@ FVector AMultiplayerCharacter::GetHitTarget() const
 	return Combat->HitTarget;
 }
 
-
 void AMultiplayerCharacter::PlayHitReactMontage()
 {
 	// Dont play any animation if the character doesn't have a weapon
@@ -523,10 +523,28 @@ void AMultiplayerCharacter::UpdateHUDHealth()
 	}
 }
 
-void AMultiplayerCharacter::Eliminated_Implementation()
+void AMultiplayerCharacter::Eliminated()
+{
+	// Call Elimination on server and clients
+	MulticastEliminated();
+
+	// Start the Respawn Timer
+	GetWorldTimerManager().SetTimer(RespawnTimer, this, &ThisClass::EndRespawnTimer, RespawnDelay);
+}
+
+void AMultiplayerCharacter::MulticastEliminated_Implementation()
 {
 	bIsEliminated = true;
 	PlayElimMontage();
+}
+
+void AMultiplayerCharacter::EndRespawnTimer()
+{
+	ABamGameMode* BamGameMode = GetWorld()->GetAuthGameMode<ABamGameMode>();
+	if (BamGameMode)
+	{
+		BamGameMode->RequestPlayerRespawn(this, Controller);
+	}
 }
 
 void AMultiplayerCharacter::HideCamera()
@@ -565,6 +583,8 @@ void AMultiplayerCharacter::OnRep_Health()
 	UpdateHUDHealth();
 	PlayHitReactMontage(); 
 }
+
+
 
 
 
