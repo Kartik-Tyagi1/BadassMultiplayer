@@ -17,6 +17,7 @@ class UCombatComponent;
 class UAnimMontage;
 class AMPPlayerController;
 class USoundCue;
+class ABamPlayerState;
 
 UCLASS()
 class BADASSMULTIPLAYER_API AMultiplayerCharacter : public ACharacter, public ICrosshairsInterface
@@ -68,6 +69,9 @@ protected:
 	void UpdateHUDHealth();
 
 	virtual void Destroyed() override;
+
+	// Poll for creation of classes and initalize them
+	void PollInit();
 
 
 private:
@@ -158,6 +162,9 @@ private:
 
 	/* PlayerController */
 	AMPPlayerController* MPPlayerController;
+
+	/* Player State */
+	ABamPlayerState* BamPlayerState;
 
 	/*********************** ELIMINATION AND RESPAWN *************************/
 	bool bIsEliminated = false;

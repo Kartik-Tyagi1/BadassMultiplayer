@@ -27,6 +27,21 @@ void AMPPlayerController::SetHUDHealthStats(float Health, float MaxHealth)
 	}
 }
 
+void AMPPlayerController::SetHUDKillCount(float Kills)
+{
+	BadassHUD = BadassHUD == nullptr ? Cast<ABadassHUD>(GetHUD()) : BadassHUD;
+
+	bool bIsHUDValid = BadassHUD && BadassHUD->CharacterOverlay &&
+		BadassHUD->CharacterOverlay->KillCount;
+
+	if (bIsHUDValid)
+	{
+		FString KillString = FString::Printf(TEXT("%d"), FMath::FloorToInt(Kills));
+		BadassHUD->CharacterOverlay->KillCount->SetText(FText::FromString(KillString));
+	}
+
+}
+
 void AMPPlayerController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);

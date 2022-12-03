@@ -20,6 +20,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Sound/SoundCue.h"
 #include "Particles/ParticleSystemComponent.h"
+#include "BadassMultiplayer/PlayerState/BamPlayerState.h"
 
 
 AMultiplayerCharacter::AMultiplayerCharacter() :
@@ -96,7 +97,7 @@ void AMultiplayerCharacter::BeginPlay()
 	if (HasAuthority())
 	{
 		// Only handle damage events on the server
-		OnTakeAnyDamage.AddDynamic(this, &ThisClass::RecieveDamage);
+		OnTakeAnyDamage.AddDynamic(this, &AMultiplayerCharacter::RecieveDamage);
 	}
 
 	UpdateHUDHealth();
@@ -134,24 +135,25 @@ void AMultiplayerCharacter::Tick(float DeltaTime)
 	}
 
 	HideCamera();
+	PollInit();
 }
 
 void AMultiplayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
-	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ThisClass::Jump);
-	PlayerInputComponent->BindAction("Equip", IE_Pressed, this, &ThisClass::EquipButtonPressed);
-	PlayerInputComponent->BindAction("Crouch", IE_Pressed, this, &ThisClass::CrouchButtonPressed);
-	PlayerInputComponent->BindAction("Aim", IE_Pressed, this, &ThisClass::AimButtonPressed);
-	PlayerInputComponent->BindAction("Aim", IE_Released, this, &ThisClass::AimButtonReleased);
-	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &ThisClass::FireButtonPressed);
-	PlayerInputComponent->BindAction("Fire", IE_Released, this, &ThisClass::FireButtonReleased);
+	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &AMultiplayerCharacter::Jump);
+	PlayerInputComponent->BindAction("Equip", IE_Pressed, this, &AMultiplayerCharacter::EquipButtonPressed);
+	PlayerInputComponent->BindAction("Crouch", IE_Pressed, this, &AMultiplayerCharacter::CrouchButtonPressed);
+	PlayerInputComponent->BindAction("Aim", IE_Pressed, this, &AMultiplayerCharacter::AimButtonPressed);
+	PlayerInputComponent->BindAction("Aim", IE_Released, this, &AMultiplayerCharacter::AimButtonReleased);
+	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &AMultiplayerCharacter::FireButtonPressed);
+	PlayerInputComponent->BindAction("Fire", IE_Released, this, &AMultiplayerCharacter::FireButtonReleased);
 
-	PlayerInputComponent->BindAxis("MoveForward", this, &ThisClass::MoveForward);
-	PlayerInputComponent->BindAxis("MoveRight", this, &ThisClass::MoveRight);
-	PlayerInputComponent->BindAxis("Turn", this, &ThisClass::Turn);
-	PlayerInputComponent->BindAxis("LookUp", this, &ThisClass::LookUp);
+	PlayerInputComponent->BindAxis("MoveForward", this, &AMultiplayerCharacter::MoveForward);
+	PlayerInputComponent->BindAxis("MoveRight", this, &AMultiplayerCharacter::MoveRight);
+	PlayerInputComponent->BindAxis("Turn", this, &AMultiplayerCharacter::Turn);
+	PlayerInputComponent->BindAxis("LookUp", this, &AMultiplayerCharacter::LookUp);
 
 }
 
@@ -537,23 +539,39 @@ void AMultiplayerCharacter::Destroyed()
 	}
 }
 
+void AMultiplayerCharacter::PollInit()
+{
+	/*
+	* The player state is not created on the first frame so we have to poll for it until it is 
+	* Then set the player score to zero/the original score when a player spawns/respawns
+	*/ 
+	if (BamPlayerState == nullptr)
+	{
+		BamPlayerState = GetPlayerState<ABamPlayerState>();
+		if (BamPlayerState)
+		{
+			BamPlayerState->AddToScore(0.f);
+		}
+	}
+}
+
 void AMultiplayerCharacter::Eliminated()
 {
-	if (Combat && Combat->EquippedWeapon)
-	{
-		Combat->EquippedWeapon->DropWeapon();
-	}
-
 	// Call Elimination on server and clients
 	MulticastEliminated();
 
 	// Start the Respawn Timer
-	GetWorldTimerManager().SetTimer(RespawnTimer, this, &ThisClass::EndRespawnTimer, RespawnDelay);
+	GetWorldTimerManager().SetTimer(RespawnTimer, this, &AMultiplayerCharacter::EndRespawnTimer, RespawnDelay);
 }
 
 void AMultiplayerCharacter::MulticastEliminated_Implementation()
 {
 	bIsEliminated = true;
+
+	if (Combat && Combat->EquippedWeapon)
+	{
+		Combat->EquippedWeapon->DropWeapon();
+	}
 
 	FVector SpawnPoint(GetActorLocation().X, GetActorLocation().Y, GetActorLocation().Z + 200);
 	FRotator SpawnRotation = GetActorRotation();

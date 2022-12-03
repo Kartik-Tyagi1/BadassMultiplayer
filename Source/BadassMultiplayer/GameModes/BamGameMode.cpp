@@ -3,12 +3,26 @@
 
 #include "BamGameMode.h"
 #include "BadassMultiplayer/Character/MultiplayerCharacter.h"
+#include "BadassMultiplayer/PlayerController/MPPlayerController.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/PlayerStart.h"
+#include "BadassMultiplayer/PlayerState/BamPlayerState.h"
 
 void ABamGameMode::PlayerEliminated(AMultiplayerCharacter* EliminatedCharacter, AMPPlayerController* EliminatedController, AMPPlayerController* AttackerController)
 {
-	EliminatedCharacter->Eliminated();
+	ABamPlayerState* AttackerPlayerState = AttackerController ? Cast<ABamPlayerState>(AttackerController->PlayerState) : nullptr;
+	ABamPlayerState* EliminatedPlayerState = EliminatedController ? Cast<ABamPlayerState>(EliminatedController->PlayerState) : nullptr;
+
+	// Check if player didnt kill themselves
+	if (AttackerPlayerState && AttackerPlayerState != EliminatedPlayerState)
+	{
+		AttackerPlayerState->AddToScore(1.f);
+	}
+
+	if (EliminatedCharacter)
+	{
+		EliminatedCharacter->Eliminated();
+	}
 }
 
 void ABamGameMode::RequestPlayerRespawn(ACharacter* EliminatedCharacter, AController* EliminatedController)
