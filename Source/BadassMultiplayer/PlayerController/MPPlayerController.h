@@ -17,6 +17,7 @@ class BADASSMULTIPLAYER_API AMPPlayerController : public APlayerController
 
 public:
 	void SetHUDHealthStats(float Health, float MaxHealth);
+	virtual void OnPossess(APawn* InPawn) override;
 
 protected:
 	virtual void BeginPlay() override;

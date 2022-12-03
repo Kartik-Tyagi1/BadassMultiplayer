@@ -17,6 +17,9 @@
 #include "BadassMultiplayer/PlayerController/MPPlayerController.h"
 #include "BadassMultiplayer/GameModes/BamGameMode.h"
 #include "TimerManager.h"
+#include "Kismet/GameplayStatics.h"
+#include "Sound/SoundCue.h"
+#include "Particles/ParticleSystemComponent.h"
 
 
 AMultiplayerCharacter::AMultiplayerCharacter() :
@@ -525,6 +528,15 @@ void AMultiplayerCharacter::UpdateHUDHealth()
 	}
 }
 
+void AMultiplayerCharacter::Destroyed()
+{
+	Super::Destroyed();
+	if (ElimBotComponent)
+	{
+		ElimBotComponent->DestroyComponent();
+	}
+}
+
 void AMultiplayerCharacter::Eliminated()
 {
 	if (Combat && Combat->EquippedWeapon)
@@ -542,6 +554,10 @@ void AMultiplayerCharacter::Eliminated()
 void AMultiplayerCharacter::MulticastEliminated_Implementation()
 {
 	bIsEliminated = true;
+
+	FVector SpawnPoint(GetActorLocation().X, GetActorLocation().Y, GetActorLocation().Z + 200);
+	FRotator SpawnRotation = GetActorRotation();
+
 	PlayElimMontage();
 
 	// Dissolve Effect
@@ -564,6 +580,21 @@ void AMultiplayerCharacter::MulticastEliminated_Implementation()
 	// Stop Collisions
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	// Elimination Bot Effect and Sound
+	if (ElimBotEffect)
+	{
+		ElimBotComponent = UGameplayStatics::SpawnEmitterAtLocation(
+			GetWorld(),
+			ElimBotEffect,
+			SpawnPoint,
+			SpawnRotation);
+	}
+	if (ElimSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, ElimSound, GetActorLocation());
+	}
+
 }
 
 void AMultiplayerCharacter::EndRespawnTimer()
@@ -573,6 +604,7 @@ void AMultiplayerCharacter::EndRespawnTimer()
 	{
 		BamGameMode->RequestPlayerRespawn(this, Controller);
 	}
+	
 }
 
 

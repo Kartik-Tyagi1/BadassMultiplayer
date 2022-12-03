@@ -16,6 +16,7 @@ class AWeapon;
 class UCombatComponent;
 class UAnimMontage;
 class AMPPlayerController;
+class USoundCue;
 
 UCLASS()
 class BADASSMULTIPLAYER_API AMultiplayerCharacter : public ACharacter, public ICrosshairsInterface
@@ -65,6 +66,8 @@ protected:
 	UFUNCTION()
 	void RecieveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, class AController* InstigatorController, AActor* DamageCauser);
 	void UpdateHUDHealth();
+
+	virtual void Destroyed() override;
 
 
 private:
@@ -188,6 +191,16 @@ private:
 	UPROPERTY(EditAnywhere, Category = Eliminated)
 	UMaterialInstance* DissolveMaterialInstance;
 
+	/*********************** ELIMINATION BOT *************************/
+	UPROPERTY(EditAnywhere, Category = Eliminated)
+	UParticleSystem* ElimBotEffect;
+
+	UPROPERTY(VisibleAnywhere, Category = Eliminated)
+	UParticleSystemComponent* ElimBotComponent;
+
+	UPROPERTY(EditAnywhere, Category = Eliminated)
+	USoundCue* ElimSound;
+
 
 // INLINES
 public:
@@ -195,6 +208,8 @@ public:
 	FORCEINLINE float GetAO_Pitch() const { return AO_Pitch; }
 	FORCEINLINE ETurningState GetTurningState() const { return TurningState; }
 	FORCEINLINE bool ShouldRotateRootBone() const { return bRotateRootBone; }
+	// FORCEINLINE float GetHealth() const { return Health; }
+	FORCEINLINE float GetMaxHealth() const { return Health; }
 
 public:
 	void SetOverlappingWeapon(AWeapon* Weapon);
