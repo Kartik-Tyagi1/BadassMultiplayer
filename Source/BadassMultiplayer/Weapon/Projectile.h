@@ -39,6 +39,7 @@ private:
 	UPROPERTY(EditAnywhere)
 	UParticleSystem* ProjectileTracer;
 
+	UPROPERTY()
 	UParticleSystemComponent* ProjectileTracerComp;
 
 	UPROPERTY(EditAnywhere)

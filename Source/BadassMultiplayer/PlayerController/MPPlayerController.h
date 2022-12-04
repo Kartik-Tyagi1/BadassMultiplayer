@@ -18,11 +18,13 @@ class BADASSMULTIPLAYER_API AMPPlayerController : public APlayerController
 public:
 	void SetHUDHealthStats(float Health, float MaxHealth);
 	void SetHUDKillCount(float Kills);
+	void SetHUDDefeats(int32 Defeats);
 	virtual void OnPossess(APawn* InPawn) override;
 
 protected:
 	virtual void BeginPlay() override;
 
 private:
+	UPROPERTY()
 	ABadassHUD* BadassHUD;
 };

@@ -27,4 +27,8 @@ public:
 
 	UPROPERTY(meta = (BindWidget))
 	UTextBlock* KillCount;
+
+	UPROPERTY(meta = (BindWidget))
+	UTextBlock* DefeatsAmount;
+
 };

@@ -161,9 +161,11 @@ private:
 	void OnRep_Health();
 
 	/* PlayerController */
+	UPROPERTY()
 	AMPPlayerController* MPPlayerController;
 
 	/* Player State */
+	UPROPERTY()
 	ABamPlayerState* BamPlayerState;
 
 	/*********************** ELIMINATION AND RESPAWN *************************/

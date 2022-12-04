@@ -8,15 +8,23 @@
 #include "GameFramework/PlayerStart.h"
 #include "BadassMultiplayer/PlayerState/BamPlayerState.h"
 
-void ABamGameMode::PlayerEliminated(AMultiplayerCharacter* EliminatedCharacter, AMPPlayerController* EliminatedController, AMPPlayerController* AttackerController)
+void ABamGameMode::PlayerEliminated(AMultiplayerCharacter* EliminatedCharacter, AMPPlayerController* VictimController, AMPPlayerController* AttackerController)
 {
+	if (AttackerController == nullptr || AttackerController->PlayerState == nullptr) return;
+	if (VictimController == nullptr || VictimController->PlayerState == nullptr) return;
+
 	ABamPlayerState* AttackerPlayerState = AttackerController ? Cast<ABamPlayerState>(AttackerController->PlayerState) : nullptr;
-	ABamPlayerState* EliminatedPlayerState = EliminatedController ? Cast<ABamPlayerState>(EliminatedController->PlayerState) : nullptr;
+	ABamPlayerState* VictimPlayerState = VictimController ? Cast<ABamPlayerState>(VictimController->PlayerState) : nullptr;
 
 	// Check if player didnt kill themselves
-	if (AttackerPlayerState && AttackerPlayerState != EliminatedPlayerState)
+	if (AttackerPlayerState && AttackerPlayerState != VictimPlayerState)
 	{
 		AttackerPlayerState->AddToScore(1.f);
+	}
+
+	if (VictimPlayerState)
+	{
+		VictimPlayerState->AddToDefeats(1);
 	}
 
 	if (EliminatedCharacter)

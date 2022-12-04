@@ -62,10 +62,13 @@ protected:
 	void Fire();
 
 private:
+	UPROPERTY()
 	AMultiplayerCharacter* Character;
 
+	UPROPERTY()
 	AMPPlayerController* Controller;
 
+	UPROPERTY()
 	ABadassHUD* HUD;
 
 	UPROPERTY(ReplicatedUsing = OnRep_EquippedWeapon)

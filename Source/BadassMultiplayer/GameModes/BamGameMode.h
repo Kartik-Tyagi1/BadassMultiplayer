@@ -19,6 +19,6 @@ class BADASSMULTIPLAYER_API ABamGameMode : public AGameMode
 	GENERATED_BODY()
 
 public:
-	virtual void PlayerEliminated(AMultiplayerCharacter* EliminatedCharacter, AMPPlayerController* EliminatedController, AMPPlayerController* AttackerController);
+	virtual void PlayerEliminated(AMultiplayerCharacter* EliminatedCharacter, AMPPlayerController* VictimController, AMPPlayerController* AttackerController);
 	virtual void RequestPlayerRespawn(ACharacter* EliminatedCharacter, AController* EliminatedController);
 };

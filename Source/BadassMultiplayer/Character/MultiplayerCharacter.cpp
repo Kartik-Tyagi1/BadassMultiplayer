@@ -551,6 +551,7 @@ void AMultiplayerCharacter::PollInit()
 		if (BamPlayerState)
 		{
 			BamPlayerState->AddToScore(0.f);
+			BamPlayerState->AddToDefeats(0);
 		}
 	}
 }

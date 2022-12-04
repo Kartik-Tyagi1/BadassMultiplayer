@@ -42,6 +42,20 @@ void AMPPlayerController::SetHUDKillCount(float Kills)
 
 }
 
+void AMPPlayerController::SetHUDDefeats(int32 Defeats)
+{
+	BadassHUD = BadassHUD == nullptr ? Cast<ABadassHUD>(GetHUD()) : BadassHUD;
+
+	bool bIsHUDValid = BadassHUD && BadassHUD->CharacterOverlay &&
+		BadassHUD->CharacterOverlay->DefeatsAmount;
+
+	if (bIsHUDValid)
+	{
+		FString DefeatsString = FString::Printf(TEXT("%d"), Defeats);
+		BadassHUD->CharacterOverlay->DefeatsAmount->SetText(FText::FromString(DefeatsString));
+	}
+}
+
 void AMPPlayerController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
