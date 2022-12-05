@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "BadassMultiplayer/HUD/BadassHUD.h"
+#include "BadassMultiplayer/Weapon/WeaponTypes.h"
 #include "CombatComponent.generated.h"
 
 #define TRACE_LENGTH 80000.f
@@ -108,6 +109,22 @@ private:
 	void EndFireTimer();
 
 	bool CanFire();
+
+	/********************************** CARRIED AMMO ***************************************/
+	// Carried Ammo for the currently equipped Weapon
+	UPROPERTY(ReplicatedUsing = OnRep_CarriedAmmo)
+	int32 CarriedAmmo;
+
+	UFUNCTION()
+	void OnRep_CarriedAmmo();
+
+	// Ammo for all the weapons equipped
+	// This cannot be replicated becuase TMap types cannot be replicated so that is why we have a carried ammo variable
+	TMap<EWeaponType, int32> CarriedAmmoMap;
+	void InitializeCarriedAmmoMap();
+
+	UPROPERTY(EditAnywhere, Category = Ammo)
+	int32 StartingAssaultRifleAmmo = 30;
 
 public:	
 		

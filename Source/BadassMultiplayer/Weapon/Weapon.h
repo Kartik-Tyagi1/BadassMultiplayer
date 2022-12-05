@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "WeaponTypes.h"
 #include "Weapon.generated.h"
 
 class USkeletalMeshComponent;
@@ -114,12 +115,16 @@ private:
 	UPROPERTY()
 	AMultiplayerCharacter* OwnerCharacter;
 
+	UPROPERTY(EditAnywhere, Category = "Weapon Properties")
+	EWeaponType WeaponType;
+
 public:	
 	void SetWeaponState(EWeaponState State);
 	FORCEINLINE USkeletalMeshComponent* GetWeaponMesh() const { return WeaponMesh; }
 	FORCEINLINE float GetZoomFOV() const { return ZoomFOV; }
 	FORCEINLINE float GetZoomInterpSpeed() const { return ZoomInterpSpeed; }
 	FORCEINLINE bool IsWeaponEmpty() const { return Ammo <= 0; }
+	FORCEINLINE EWeaponType GetWeaponType() const { return WeaponType; }
 
 	/* Textures for the weapon crosshairs. These are individual so we can make them dynamic */
 	UPROPERTY(EditAnywhere, Category = Crosshairs)

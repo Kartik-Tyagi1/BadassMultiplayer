@@ -630,7 +630,6 @@ void AMultiplayerCharacter::EndRespawnTimer()
 	
 }
 
-
 void AMultiplayerCharacter::HideCamera()
 {
 	if (!IsLocallyControlled()) return;

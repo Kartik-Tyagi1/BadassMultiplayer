@@ -64,7 +64,6 @@ void AWeapon::Tick(float DeltaTime)
 
 }
 
-
 void AWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -137,7 +136,6 @@ void AWeapon::SetWeaponState(EWeaponState State)
 		break;
 	}
 }
-
 
 void AWeapon::ShowPickupWidget(bool bShowWidget)
 {

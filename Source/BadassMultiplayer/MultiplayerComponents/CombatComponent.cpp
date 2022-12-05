@@ -26,6 +26,7 @@ void UCombatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	// We want this data to replicate everywhere so that the animation is shown on server and clients. So no need for condition
 	DOREPLIFETIME(UCombatComponent, EquippedWeapon);
 	DOREPLIFETIME(UCombatComponent, bIsAiming);
+	DOREPLIFETIME_CONDITION(UCombatComponent, CarriedAmmo, COND_OwnerOnly);
 }
 
 void UCombatComponent::BeginPlay()
@@ -39,8 +40,12 @@ void UCombatComponent::BeginPlay()
 			DefaultFOV = Character->GetCamera()->FieldOfView;
 			CurrentFOV = Character->GetCamera()->FieldOfView;
 		}
-	}
 
+		if (Character->HasAuthority())
+		{
+			InitializeCarriedAmmoMap();
+		}
+	}
 }
 
 void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
@@ -82,6 +87,17 @@ void UCombatComponent::EquipWeapon(AWeapon* WeaponToEquip)
 	// The Owner is a built in replicated variable. So when we change the owner, it will be replicated across clients
 	EquippedWeapon->SetOwner(Character);
 	EquippedWeapon->SetHUDAmmo();
+
+	if (CarriedAmmoMap.Contains(EquippedWeapon->GetWeaponType()))
+	{
+		CarriedAmmo = CarriedAmmoMap[EquippedWeapon->GetWeaponType()];
+	}
+
+	Controller = Controller == nullptr ? Cast<AMPPlayerController>(Character->Controller) : Controller; 
+	if (Controller)
+	{
+		Controller->SetHUDCarriedAmmo(CarriedAmmo);
+	}
 	Character->GetCharacterMovement()->bOrientRotationToMovement = false;
 	Character->bUseControllerRotationYaw = true;
 }
@@ -321,6 +337,20 @@ void UCombatComponent::InterpFOV(float DeltaTime)
 		Character->GetCamera()->SetFieldOfView(CurrentFOV);
 	}
 
+}
+
+void UCombatComponent::OnRep_CarriedAmmo()
+{
+	Controller = Controller == nullptr ? Cast<AMPPlayerController>(Character->Controller) : Controller;
+	if (Controller)
+	{
+		Controller->SetHUDCarriedAmmo(CarriedAmmo);
+	}
+}
+
+void UCombatComponent::InitializeCarriedAmmoMap()
+{
+	CarriedAmmoMap.Emplace(EWeaponType::EWT_AssaultRifle, StartingAssaultRifleAmmo);
 }
 
 
