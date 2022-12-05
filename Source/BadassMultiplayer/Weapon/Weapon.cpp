@@ -186,7 +186,7 @@ void AWeapon::DropWeapon()
 // Called on Server
 void AWeapon::SpendRound()
 {
-	Ammo--;
+	Ammo = FMath::Clamp(Ammo - 1, 0, MagCapacity);
 	SetHUDAmmo();
 }
 

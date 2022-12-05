@@ -119,6 +119,7 @@ public:
 	FORCEINLINE USkeletalMeshComponent* GetWeaponMesh() const { return WeaponMesh; }
 	FORCEINLINE float GetZoomFOV() const { return ZoomFOV; }
 	FORCEINLINE float GetZoomInterpSpeed() const { return ZoomInterpSpeed; }
+	FORCEINLINE bool IsWeaponEmpty() const { return Ammo <= 0; }
 
 	/* Textures for the weapon crosshairs. These are individual so we can make them dynamic */
 	UPROPERTY(EditAnywhere, Category = Crosshairs)

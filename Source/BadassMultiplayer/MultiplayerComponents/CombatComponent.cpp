@@ -115,7 +115,7 @@ void UCombatComponent::FireButtonPressed(bool bFireIsPressed)
 
 void UCombatComponent::Fire()
 {
-	if (bCanFire)
+	if (CanFire())
 	{
 		bCanFire = false;
 		// Only trace when fire button is pressed then send the hit target (impact point) to the RPC's to do all the weapon firing across machines
@@ -144,6 +144,15 @@ void UCombatComponent::EndFireTimer()
 	{
 		Fire();
 	}
+}
+
+bool UCombatComponent::CanFire()
+{
+	if (EquippedWeapon == nullptr) return false;
+
+	// Return true if weapon is NOT empty and if we CAN fire
+	return !EquippedWeapon->IsWeaponEmpty() && bCanFire;
+
 }
 
 void UCombatComponent::ServerFire_Implementation(const FVector_NetQuantize& TraceHitTarget)
