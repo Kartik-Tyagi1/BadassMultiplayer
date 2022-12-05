@@ -19,6 +19,7 @@ public:
 	void SetHUDHealthStats(float Health, float MaxHealth);
 	void SetHUDKillCount(float Kills);
 	void SetHUDDefeats(int32 Defeats);
+	void SetHUDWeaponAmmo(int32 Ammo); // Ammo In the Weapon 
 	virtual void OnPossess(APawn* InPawn) override;
 
 protected:

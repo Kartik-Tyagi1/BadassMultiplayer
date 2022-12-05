@@ -613,7 +613,11 @@ void AMultiplayerCharacter::MulticastEliminated_Implementation()
 	{
 		UGameplayStatics::PlaySoundAtLocation(this, ElimSound, GetActorLocation());
 	}
-
+	
+	if (MPPlayerController)
+	{
+		MPPlayerController->SetHUDWeaponAmmo(0);
+	}
 }
 
 void AMultiplayerCharacter::EndRespawnTimer()

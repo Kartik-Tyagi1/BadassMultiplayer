@@ -56,6 +56,20 @@ void AMPPlayerController::SetHUDDefeats(int32 Defeats)
 	}
 }
 
+void AMPPlayerController::SetHUDWeaponAmmo(int32 Ammo)
+{
+	BadassHUD = BadassHUD == nullptr ? Cast<ABadassHUD>(GetHUD()) : BadassHUD;
+
+	bool bIsHUDValid = BadassHUD && BadassHUD->CharacterOverlay &&
+		BadassHUD->CharacterOverlay->WeaponAmmoAmount;
+
+	if (bIsHUDValid)
+	{
+		FString AmmoString = FString::Printf(TEXT("%d"), Ammo);
+		BadassHUD->CharacterOverlay->WeaponAmmoAmount->SetText(FText::FromString(AmmoString));
+	}
+}
+
 void AMPPlayerController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);

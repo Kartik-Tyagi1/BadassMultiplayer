@@ -64,6 +64,12 @@ void UCombatComponent::EquipWeapon(AWeapon* WeaponToEquip)
 {
 	if (Character == nullptr || WeaponToEquip == nullptr) return;
 
+	// Drop Weapon if picking another one up
+	if (EquippedWeapon)
+	{
+		EquippedWeapon->DropWeapon();
+	}
+
 	EquippedWeapon = WeaponToEquip;
 	EquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
 
@@ -75,6 +81,7 @@ void UCombatComponent::EquipWeapon(AWeapon* WeaponToEquip)
 
 	// The Owner is a built in replicated variable. So when we change the owner, it will be replicated across clients
 	EquippedWeapon->SetOwner(Character);
+	EquippedWeapon->SetHUDAmmo();
 	Character->GetCharacterMovement()->bOrientRotationToMovement = false;
 	Character->bUseControllerRotationYaw = true;
 }

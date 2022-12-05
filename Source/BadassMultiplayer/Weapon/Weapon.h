@@ -12,6 +12,8 @@ class UWidgetComponent;
 class UAnimationAsset;
 class ABulletShell;
 class UTexture2D;
+class AMPPlayerController;
+class AMultiplayerCharacter;
 
 UENUM(BlueprintType)
 enum class EWeaponState : uint8
@@ -35,11 +37,15 @@ public:
 	/* Registers which variables are to be replicated across the game instances */
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
+	virtual void OnRep_Owner() override;
+
 	void ShowPickupWidget(bool bShowWidget);
 
 	virtual void FireWeapon(const FVector& HitTarget);
 
 	void DropWeapon();
+
+	void SetHUDAmmo();
 
 protected:
 	virtual void BeginPlay() override;
@@ -89,6 +95,25 @@ private:
 	UPROPERTY(EditAnywhere, Category = Aiming)
 	float ZoomInterpSpeed = 20.f;
 
+	// Amount of ammo in the mag
+	UPROPERTY(ReplicatedUsing = OnRep_Ammo, EditAnywhere, Category = Ammo)
+	int32 Ammo;
+
+	UFUNCTION()
+	void OnRep_Ammo();
+
+	// Decrements ammo when firing weapon
+	void SpendRound();
+
+	UPROPERTY(EditAnywhere, Category = Ammo)
+	int32 MagCapacity;
+
+	UPROPERTY()
+	AMPPlayerController* OwnerController;
+
+	UPROPERTY()
+	AMultiplayerCharacter* OwnerCharacter;
+
 public:	
 	void SetWeaponState(EWeaponState State);
 	FORCEINLINE USkeletalMeshComponent* GetWeaponMesh() const { return WeaponMesh; }
@@ -118,9 +143,5 @@ public:
 	// True is weapon is an automatic weapon
 	UPROPERTY(EditAnywhere, Category = Combat)
 	bool bIsAutomatic = true;
-
-
-
-	
 
 };

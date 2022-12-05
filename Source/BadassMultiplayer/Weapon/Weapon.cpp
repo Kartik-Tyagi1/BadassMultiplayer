@@ -8,6 +8,7 @@
 #include "Net/UnrealNetwork.h"
 #include "BulletShell.h"
 #include "Engine/SkeletalMeshSocket.h"
+#include "BadassMultiplayer/PlayerController/MPPlayerController.h"
 
 
 AWeapon::AWeapon():
@@ -68,10 +69,10 @@ void AWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeP
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	// Although we set the bReplicates on the AWeapon Constructor to true, if we can to replicate specific variables as well we need to specify them here
-	DOREPLIFETIME_CONDITION(AWeapon, WeaponState, COND_OwnerOnly);
+	// Although we set the bReplicates on the AWeapon Constructor to true, if we want to replicate specific variables as well we need to specify them here
+	DOREPLIFETIME(AWeapon, WeaponState);
+	DOREPLIFETIME(AWeapon, Ammo)
 }
-
 
 void AWeapon::OnAreaSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
@@ -137,6 +138,7 @@ void AWeapon::SetWeaponState(EWeaponState State)
 	}
 }
 
+
 void AWeapon::ShowPickupWidget(bool bShowWidget)
 {
 	if (PickupWidget)
@@ -168,6 +170,7 @@ void AWeapon::FireWeapon(const FVector& HitTarget)
 			}
 		}
 	}
+	SpendRound();
 }
 
 void AWeapon::DropWeapon()
@@ -176,5 +179,46 @@ void AWeapon::DropWeapon()
 	FDetachmentTransformRules DetachmentRules(EDetachmentRule::KeepWorld, true);
 	WeaponMesh->DetachFromComponent(DetachmentRules);
 	SetOwner(nullptr);
+	OwnerController = nullptr;
+	OwnerCharacter = nullptr;
 }
 
+// Called on Server
+void AWeapon::SpendRound()
+{
+	Ammo--;
+	SetHUDAmmo();
+}
+
+// Called on Clients
+void AWeapon::OnRep_Ammo()
+{
+	SetHUDAmmo();
+}
+
+void AWeapon::OnRep_Owner()
+{
+	Super::OnRep_Owner();
+	if (Owner == nullptr)
+	{
+		OwnerController = nullptr;
+		OwnerCharacter = nullptr;
+	}
+	else
+	{
+		SetHUDAmmo();
+	}
+}
+
+void AWeapon::SetHUDAmmo()
+{
+	OwnerCharacter = OwnerCharacter == nullptr ? Cast<AMultiplayerCharacter>(GetOwner()) : OwnerCharacter;
+	if (OwnerCharacter)
+	{
+		OwnerController = OwnerController == nullptr ? Cast<AMPPlayerController>(OwnerCharacter->Controller) : OwnerController;
+		if (OwnerController)
+		{
+			OwnerController->SetHUDWeaponAmmo(Ammo);
+		}
+	}
+}
