@@ -68,6 +68,8 @@ protected:
 
 	void HandleReload();
 
+	int32 CalculateReloadAmount();
+
 private:
 	/********************************** COMPONENTS ***************************************/
 	UPROPERTY()
@@ -129,7 +131,7 @@ private:
 	UFUNCTION()
 	void OnRep_CombatState();
 
-	/********************************** CARRIED AMMO ***************************************/
+	/********************************** CARRIED AMMO AND RELOADING ***************************************/
 	// Carried Ammo for the currently equipped Weapon
 	UPROPERTY(ReplicatedUsing = OnRep_CarriedAmmo)
 	int32 CarriedAmmo;
@@ -144,6 +146,8 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = Ammo)
 	int32 StartingAssaultRifleAmmo = 30;
+
+	void UpdateAmmoValues();
 
 public:	
 	void Reload();

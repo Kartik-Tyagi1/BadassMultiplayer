@@ -220,3 +220,12 @@ void AWeapon::SetHUDAmmo()
 		}
 	}
 }
+
+void AWeapon::AddAmmo(int32 AmmoToAdd)
+{
+	// Set Ammo In Mag amount
+	Ammo = FMath::Clamp(Ammo + AmmoToAdd, 0, MagCapacity);
+
+	// Update Ammo in mag amount on hud
+	SetHUDAmmo();
+}

@@ -92,5 +92,6 @@ void UMultiplayer_AnimInstance::NativeUpdateAnimation(float DeltaTime)
 	}
 
 	bUseFabrik = MC->GetCombatState() != ECombatState::ECS_Reloading;
-
+	bUseAimOffsets = MC->GetCombatState() != ECombatState::ECS_Reloading;
+	bTransformRightHand = MC->GetCombatState() != ECombatState::ECS_Reloading;
 }

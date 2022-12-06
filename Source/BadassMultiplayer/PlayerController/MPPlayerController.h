@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
+#include "BadassMultiplayer/Weapon/WeaponTypes.h"
 #include "MPPlayerController.generated.h"
 
 /**
@@ -21,6 +22,7 @@ public:
 	void SetHUDDefeats(int32 Defeats);
 	void SetHUDWeaponAmmo(int32 Ammo); // Ammo In the Weapon 
 	void SetHUDCarriedAmmo(int32 CarriedAmmo); // Ammo In the Weapon 
+	void SetHUDWeaponType(EWeaponType WeaponType);
 	virtual void OnPossess(APawn* InPawn) override;
 
 protected:

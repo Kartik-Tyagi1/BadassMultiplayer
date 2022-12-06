@@ -84,6 +84,30 @@ void AMPPlayerController::SetHUDCarriedAmmo(int32 CarriedAmmo)
 	}
 }
 
+void AMPPlayerController::SetHUDWeaponType(EWeaponType WeaponType)
+{
+	BadassHUD = BadassHUD == nullptr ? Cast<ABadassHUD>(GetHUD()) : BadassHUD;
+
+	bool bIsHUDValid = BadassHUD && BadassHUD->CharacterOverlay &&
+		BadassHUD->CharacterOverlay->WeaponType;
+
+	if (bIsHUDValid)
+	{
+		FString WeaponTypeString;
+		switch (WeaponType)
+		{
+		case EWeaponType::EWT_AssaultRifle:
+			WeaponTypeString = FString("Assault Rifle");
+			break;
+		case EWeaponType::EWT_MAX:
+			WeaponTypeString = FString("");
+			break;
+		}
+
+		BadassHUD->CharacterOverlay->WeaponType->SetText(FText::FromString(WeaponTypeString));
+	}
+}
+
 void AMPPlayerController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);

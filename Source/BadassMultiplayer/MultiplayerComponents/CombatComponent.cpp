@@ -9,6 +9,7 @@
 #include "BadassMultiplayer/PlayerController/MPPlayerController.h"
 #include "Camera/CameraComponent.h"
 #include "TimerManager.h"
+#include "Sound/SoundCue.h"
 
 
 UCombatComponent::UCombatComponent():
@@ -69,11 +70,16 @@ void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 void UCombatComponent::EquipWeapon(AWeapon* WeaponToEquip)
 {
 	if (Character == nullptr || WeaponToEquip == nullptr) return;
+	Controller = Controller == nullptr ? Cast<AMPPlayerController>(Character->Controller) : Controller;
 
 	// Drop Weapon if picking another one up
 	if (EquippedWeapon)
 	{
 		EquippedWeapon->DropWeapon();
+		if (Controller)
+		{
+			Controller->SetHUDWeaponType(EWeaponType::EWT_MAX);
+		}
 	}
 
 	EquippedWeapon = WeaponToEquip;
@@ -94,11 +100,22 @@ void UCombatComponent::EquipWeapon(AWeapon* WeaponToEquip)
 		CarriedAmmo = CarriedAmmoMap[EquippedWeapon->GetWeaponType()];
 	}
 
-	Controller = Controller == nullptr ? Cast<AMPPlayerController>(Character->Controller) : Controller; 
 	if (Controller)
 	{
 		Controller->SetHUDCarriedAmmo(CarriedAmmo);
+		Controller->SetHUDWeaponType(EquippedWeapon->GetWeaponType());
 	}
+
+	if (EquippedWeapon->WeaponEquipSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, EquippedWeapon->WeaponEquipSound, Character->GetActorLocation());
+	}
+
+	if (EquippedWeapon->IsWeaponEmpty())
+	{
+		Reload();
+	}
+
 	Character->GetCharacterMovement()->bOrientRotationToMovement = false;
 	Character->bUseControllerRotationYaw = true;
 }
@@ -107,12 +124,23 @@ void UCombatComponent::OnRep_EquippedWeapon()
 {
 	if (EquippedWeapon && Character)
 	{
+		Controller = Controller == nullptr ? Cast<AMPPlayerController>(Character->Controller) : Controller;
+		if (Controller)
+		{
+			Controller->SetHUDWeaponType(EquippedWeapon->GetWeaponType());
+		}
+
 		// This needs to be done here in case the weapon state isn't set. Calling it here makes the variable replicate across clients before the weapon is attached
 		EquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
 		const USkeletalMeshSocket* RightHandSocket = Character->GetMesh()->GetSocketByName(FName("RightHandSocket"));
 		if (RightHandSocket)
 		{
 			RightHandSocket->AttachActor(EquippedWeapon, Character->GetMesh());
+		}
+
+		if (EquippedWeapon->WeaponEquipSound)
+		{
+			UGameplayStatics::PlaySoundAtLocation(this, EquippedWeapon->WeaponEquipSound, Character->GetActorLocation());
 		}
 
 		Character->GetCharacterMovement()->bOrientRotationToMovement = false;
@@ -161,6 +189,10 @@ void UCombatComponent::EndFireTimer()
 	{
 		Fire();
 	}
+	if (EquippedWeapon->IsWeaponEmpty())
+	{
+		Reload();
+	}
 }
 
 bool UCombatComponent::CanFire()
@@ -206,9 +238,11 @@ void UCombatComponent::ServerReload_Implementation()
 void UCombatComponent::FinishReload()
 {
 	if (Character == nullptr) return;
+
 	if (Character->HasAuthority())
 	{
 		CombatState = ECombatState::ECS_Unoccupied;
+		UpdateAmmoValues();
 	}
 	if (bFireButtonPressed)
 	{
@@ -235,6 +269,45 @@ void UCombatComponent::OnRep_CombatState()
 void UCombatComponent::HandleReload()
 {
 	Character->PlayReloadMontage();
+}
+
+int32 UCombatComponent::CalculateReloadAmount()
+{
+	if (EquippedWeapon == nullptr) return 0;
+
+	int32 EmptySpaceInMag = EquippedWeapon->GetMagCapacity() - EquippedWeapon->GetAmmo();
+	if (CarriedAmmoMap.Contains(EquippedWeapon->GetWeaponType()))
+	{
+		int32 AmountCarried = CarriedAmmoMap[EquippedWeapon->GetWeaponType()];
+		// Determine if our carried ammo is less than the space in the mag cuase then that is the amount we have to reload 
+		int32 Least = FMath::Min(AmountCarried, EmptySpaceInMag);
+		return FMath::Clamp(EmptySpaceInMag, 0, Least);
+	}
+
+	return 0;
+}
+
+void UCombatComponent::UpdateAmmoValues()
+{
+	if (EquippedWeapon == nullptr) return;
+
+	// Calculate Amount to Reload and update the ammo map
+	int32 AmountToReload = CalculateReloadAmount();
+	if (CarriedAmmoMap.Contains(EquippedWeapon->GetWeaponType()))
+	{
+		CarriedAmmoMap[EquippedWeapon->GetWeaponType()] -= AmountToReload;
+		CarriedAmmo = CarriedAmmoMap[EquippedWeapon->GetWeaponType()];
+	}
+
+	// Update the amount of ammo in the mag of the weapon
+	EquippedWeapon->AddAmmo(AmountToReload);
+
+	// Update the HUD for the new carried ammo amount
+	Controller = Controller == nullptr ? Cast<AMPPlayerController>(Character->Controller) : Controller;
+	if (Controller)
+	{
+		Controller->SetHUDCarriedAmmo(CarriedAmmo);
+	}
 }
 
 void UCombatComponent::SetIsAiming(bool bAiming)

@@ -15,6 +15,7 @@ class ABulletShell;
 class UTexture2D;
 class AMPPlayerController;
 class AMultiplayerCharacter;
+class USoundCue;
 
 UENUM(BlueprintType)
 enum class EWeaponState : uint8
@@ -69,54 +70,54 @@ protected:
 
 private:
 	UPROPERTY(VisibleAnywhere, Category = "WeaponProperties")
-	USkeletalMeshComponent* WeaponMesh;
+		USkeletalMeshComponent* WeaponMesh;
 
 	UPROPERTY(VisibleAnywhere, Category = "WeaponProperties")
-	USphereComponent* AreaSphere;
+		USphereComponent* AreaSphere;
 
 	UPROPERTY(VisibleAnywhere, Category = "WeaponProperties")
-	UWidgetComponent* PickupWidget;
+		UWidgetComponent* PickupWidget;
 
 	UPROPERTY(ReplicatedUsing = OnRep_WeaponState, VisibleAnywhere, Category = "WeaponProperties")
-	EWeaponState WeaponState;
+		EWeaponState WeaponState;
 
 	UFUNCTION()
-	void OnRep_WeaponState();
+		void OnRep_WeaponState();
 
 	UPROPERTY(EditAnywhere, Category = "WeaponProperties")
-	UAnimationAsset* FireWeaponAnim;
+		UAnimationAsset* FireWeaponAnim;
 
 	UPROPERTY(EditAnywhere)
-	TSubclassOf<ABulletShell> BulletShellClass;
+		TSubclassOf<ABulletShell> BulletShellClass;
 
 	/* Aiming Zoom Parameters */
 	UPROPERTY(EditAnywhere, Category = Aiming)
-	float ZoomFOV = 30.f;
+		float ZoomFOV = 30.f;
 
 	UPROPERTY(EditAnywhere, Category = Aiming)
-	float ZoomInterpSpeed = 20.f;
+		float ZoomInterpSpeed = 20.f;
 
 	// Amount of ammo in the mag
 	UPROPERTY(ReplicatedUsing = OnRep_Ammo, EditAnywhere, Category = Ammo)
-	int32 Ammo;
+		int32 Ammo;
 
 	UFUNCTION()
-	void OnRep_Ammo();
+		void OnRep_Ammo();
 
 	// Decrements ammo when firing weapon
 	void SpendRound();
 
 	UPROPERTY(EditAnywhere, Category = Ammo)
-	int32 MagCapacity;
+		int32 MagCapacity;
 
 	UPROPERTY()
-	AMPPlayerController* OwnerController;
+		AMPPlayerController* OwnerController;
 
 	UPROPERTY()
-	AMultiplayerCharacter* OwnerCharacter;
+		AMultiplayerCharacter* OwnerCharacter;
 
 	UPROPERTY(EditAnywhere, Category = "Weapon Properties")
-	EWeaponType WeaponType;
+		EWeaponType WeaponType;
 
 public:	
 	void SetWeaponState(EWeaponState State);
@@ -125,29 +126,37 @@ public:
 	FORCEINLINE float GetZoomInterpSpeed() const { return ZoomInterpSpeed; }
 	FORCEINLINE bool IsWeaponEmpty() const { return Ammo <= 0; }
 	FORCEINLINE EWeaponType GetWeaponType() const { return WeaponType; }
+	FORCEINLINE int32 GetAmmo() const { return Ammo; }
+	FORCEINLINE int32 GetMagCapacity() const { return MagCapacity; }
+	void AddAmmo(int32 AmmoToAdd);
 
 	/* Textures for the weapon crosshairs. These are individual so we can make them dynamic */
 	UPROPERTY(EditAnywhere, Category = Crosshairs)
-	UTexture2D* CrosshairCenter;
+		UTexture2D* CrosshairCenter;
 
 	UPROPERTY(EditAnywhere, Category = Crosshairs)
-	UTexture2D* CrosshairTop;
+		UTexture2D* CrosshairTop;
 
 	UPROPERTY(EditAnywhere, Category = Crosshairs)
-	UTexture2D* CrosshairBottom;
+		UTexture2D* CrosshairBottom;
 
 	UPROPERTY(EditAnywhere, Category = Crosshairs)
-	UTexture2D* CrosshairLeft;
+		UTexture2D* CrosshairLeft;
 
 	UPROPERTY(EditAnywhere, Category = Crosshairs)
-	UTexture2D* CrosshairRight;
+		UTexture2D* CrosshairRight;
 
 	// Delay for automatic fire
 	UPROPERTY(EditAnywhere, Category = Combat)
-	float FireDelay = 0.15f;
+		float FireDelay = 0.15f;
 
 	// True is weapon is an automatic weapon
 	UPROPERTY(EditAnywhere, Category = Combat)
-	bool bIsAutomatic = true;
+		bool bIsAutomatic = true;
+
+	UPROPERTY(EditAnywhere, Category = "Weapon Properties")
+		USoundCue* WeaponEquipSound;
+
+
 
 };

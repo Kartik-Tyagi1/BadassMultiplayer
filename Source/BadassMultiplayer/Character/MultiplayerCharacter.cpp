@@ -649,6 +649,7 @@ void AMultiplayerCharacter::MulticastEliminated_Implementation()
 	if (MPPlayerController)
 	{
 		MPPlayerController->SetHUDWeaponAmmo(0);
+		MPPlayerController->SetHUDWeaponType(EWeaponType::EWT_MAX);
 	}
 }
 
