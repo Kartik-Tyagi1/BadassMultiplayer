@@ -167,8 +167,8 @@ bool UCombatComponent::CanFire()
 {
 	if (EquippedWeapon == nullptr) return false;
 
-	// Return true if weapon is NOT empty and if we CAN fire
-	return !EquippedWeapon->IsWeaponEmpty() && bCanFire;
+	// Return true if weapon is NOT empty and if we CAN fire (based on auto fire variable) and that we are unoccupied
+	return !EquippedWeapon->IsWeaponEmpty() && bCanFire && CombatState == ECombatState::ECS_Unoccupied;
 
 }
 
@@ -180,7 +180,7 @@ void UCombatComponent::ServerFire_Implementation(const FVector_NetQuantize& Trac
 void UCombatComponent::NetMulticastFire_Implementation(const FVector_NetQuantize& TraceHitTarget)
 {
 	if (EquippedWeapon == nullptr) return;
-	if (Character)
+	if (Character && CombatState == ECombatState::ECS_Unoccupied)
 	{
 		Character->PlayFireMontage(bIsAiming);
 		EquippedWeapon->FireWeapon(TraceHitTarget);
@@ -210,6 +210,10 @@ void UCombatComponent::FinishReload()
 	{
 		CombatState = ECombatState::ECS_Unoccupied;
 	}
+	if (bFireButtonPressed)
+	{
+		Fire();
+	}
 }
 
 void UCombatComponent::OnRep_CombatState()
@@ -218,6 +222,12 @@ void UCombatComponent::OnRep_CombatState()
 	{
 	case ECombatState::ECS_Reloading:
 		HandleReload();
+		break;
+	case ECombatState::ECS_Unoccupied:
+		if (bFireButtonPressed)
+		{
+			Fire();
+		}
 		break;
 	}
 }
