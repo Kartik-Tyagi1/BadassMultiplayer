@@ -7,6 +7,7 @@
 #include "BadassMultiplayer/Types/TurningInPlace.h"
 #include "BadassMultiplayer/Interfaces/CrosshairsInterface.h"
 #include "Components/TimelineComponent.h"
+#include "BadassMultiplayer/Types/CombatState.h"
 #include "MultiplayerCharacter.generated.h"
 
 class UCameraComponent;
@@ -55,6 +56,7 @@ protected:
 	void AimButtonReleased();
 	void FireButtonPressed();
 	void FireButtonReleased();
+	void ReloadButtonPressed();
 
 	void CalculateAO(float DeltaTime);
 	void TurnInPlace(float DeltaTime);
@@ -104,7 +106,7 @@ private:
 	UFUNCTION()
 	void OnRep_OverlappingWeapon(AWeapon* LastWeapon);
 
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	UCombatComponent* Combat;
 
 	/*
@@ -136,6 +138,9 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = Combat)
 	UAnimMontage* ElimMontage;
+
+	UPROPERTY(EditAnywhere, Category = Combat)
+	UAnimMontage* ReloadMontage;
 
 	UPROPERTY(EditAnywhere, Category = Combat)
 	float CameraThreshold = 200.f;
@@ -219,6 +224,7 @@ public:
 	FORCEINLINE bool ShouldRotateRootBone() const { return bRotateRootBone; }
 	// FORCEINLINE float GetHealth() const { return Health; }
 	FORCEINLINE float GetMaxHealth() const { return Health; }
+	ECombatState GetCombatState() const;
 
 public:
 	void SetOverlappingWeapon(AWeapon* Weapon);
@@ -226,6 +232,7 @@ public:
 	bool GetIsAiming();
 	AWeapon* GetEquippedWeapon();
 	void PlayFireMontage(bool bIsAiming);
+	void PlayReloadMontage();
 	FVector GetHitTarget() const;
 	UCameraComponent* GetCamera() { return Camera; }
 

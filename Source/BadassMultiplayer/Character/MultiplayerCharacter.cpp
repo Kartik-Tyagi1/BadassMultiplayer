@@ -21,6 +21,7 @@
 #include "Sound/SoundCue.h"
 #include "Particles/ParticleSystemComponent.h"
 #include "BadassMultiplayer/PlayerState/BamPlayerState.h"
+#include "BadassMultiplayer/Weapon/WeaponTypes.h"
 
 
 AMultiplayerCharacter::AMultiplayerCharacter() :
@@ -149,6 +150,7 @@ void AMultiplayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInp
 	PlayerInputComponent->BindAction("Aim", IE_Released, this, &AMultiplayerCharacter::AimButtonReleased);
 	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &AMultiplayerCharacter::FireButtonPressed);
 	PlayerInputComponent->BindAction("Fire", IE_Released, this, &AMultiplayerCharacter::FireButtonReleased);
+	PlayerInputComponent->BindAction("Reload", IE_Pressed, this, &AMultiplayerCharacter::ReloadButtonPressed);
 
 	PlayerInputComponent->BindAxis("MoveForward", this, &AMultiplayerCharacter::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &AMultiplayerCharacter::MoveRight);
@@ -315,6 +317,14 @@ void AMultiplayerCharacter::FireButtonReleased()
 	}
 }
 
+void AMultiplayerCharacter::ReloadButtonPressed()
+{
+	if (Combat)
+	{
+		Combat->Reload();
+	}
+}
+
 void AMultiplayerCharacter::ServerEquipButtonPressed_Implementation()
 {
 	if (Combat)
@@ -468,6 +478,28 @@ void AMultiplayerCharacter::PlayFireMontage(bool bIsAiming)
 		AnimInstance->Montage_Play(FireWeaponMontage);
 		FName FireSectionName = bIsAiming ? FName("RifleAim") : FName("RifleHip");
 		AnimInstance->Montage_JumpToSection(FireSectionName);
+	}
+}
+
+void AMultiplayerCharacter::PlayReloadMontage()
+{
+	// Dont play any animation if the character doesn't have a weapon
+	if (Combat == nullptr || Combat->EquippedWeapon == nullptr) return;
+
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance && ReloadMontage)
+	{
+		AnimInstance->Montage_Play(ReloadMontage);
+		
+		FName ReloadSectionName;
+		switch (Combat->EquippedWeapon->GetWeaponType())
+		{
+		case EWeaponType::EWT_AssaultRifle:
+			ReloadSectionName = FName("ReloadRifle");
+			break;
+		}
+
+		AnimInstance->Montage_JumpToSection(ReloadSectionName);
 	}
 }
 
@@ -683,6 +715,12 @@ void AMultiplayerCharacter::StartDissolve()
 		DissolveTimeline->AddInterpFloat(DissolveCurve, DissolveTrack);
 		DissolveTimeline->Play();
 	}
+}
+
+ECombatState AMultiplayerCharacter::GetCombatState() const
+{
+	if (Combat == nullptr) return ECombatState::ECS_MAX;
+	return Combat->CombatState;
 }
 
 

@@ -6,6 +6,7 @@
 #include "Components/ActorComponent.h"
 #include "BadassMultiplayer/HUD/BadassHUD.h"
 #include "BadassMultiplayer/Weapon/WeaponTypes.h"
+#include "BadassMultiplayer/Types/CombatState.h"
 #include "CombatComponent.generated.h"
 
 #define TRACE_LENGTH 80000.f
@@ -62,6 +63,11 @@ protected:
 
 	void Fire();
 
+	UFUNCTION(Server, Reliable)
+	void ServerReload();
+
+	void HandleReload();
+
 private:
 	UPROPERTY()
 	AMultiplayerCharacter* Character;
@@ -110,6 +116,12 @@ private:
 
 	bool CanFire();
 
+	UPROPERTY(ReplicatedUsing = OnRep_CombatState)
+	ECombatState CombatState = ECombatState::ECS_Unoccupied;
+
+	UFUNCTION()
+	void OnRep_CombatState();
+
 	/********************************** CARRIED AMMO ***************************************/
 	// Carried Ammo for the currently equipped Weapon
 	UPROPERTY(ReplicatedUsing = OnRep_CarriedAmmo)
@@ -127,5 +139,9 @@ private:
 	int32 StartingAssaultRifleAmmo = 30;
 
 public:	
+	void Reload();
+
+	UFUNCTION(BlueprintCallable)
+	void FinishReload();
 		
 };
