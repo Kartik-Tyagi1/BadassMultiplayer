@@ -77,49 +77,41 @@ protected:
 
 
 private:
+
+	/*********************** COMPONENTS *************************/
 	UPROPERTY(VisibleAnywhere, Category = Camera, meta = (AllowPrivateAccess = "true"))
-	UCameraComponent* Camera;
+		UCameraComponent* Camera;
 
 	UPROPERTY(VisibleAnywhere, Category = Camera, meta = (AllowPrivateAccess = "true"))
-	USpringArmComponent* SpringArm;
+		USpringArmComponent* SpringArm;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	UWidgetComponent* OverheadWidget;
-
-	/* 
-	* The UPROPERTY Designates Overlapping Weapon to be an actor that gets relpicated across all instances (clients) of the game.
-	* 
-	* NOTE: Replication only happens one way (Server ----> Client)
-	* 
-	* When the value of OverlappingWeapon changes on the server
-	*	- only then it will replicate ( aka set on all clients of the MultiplayerCharacter)
-	*	- only then will OnRep_OverlappingWeapon be called
-	*/
-	UPROPERTY(ReplicatedUsing = OnRep_OverlappingWeapon)
-	AWeapon* OverlappingWeapon;
-
-	/* 
-	* Called automatically when the value of the OverlappingWeapon Changes
-	* ----- WILL NOT BE CALLED ON THE SERVER. SO IT WON'T BE REPLICATED THERE -------
-	* Notifies can have an input parameter of the type that is it notifying about and that parameter stores the last value of that variable it before is changed
-	*/
-	UFUNCTION()
-	void OnRep_OverlappingWeapon(AWeapon* LastWeapon);
+		UWidgetComponent* OverheadWidget;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	UCombatComponent* Combat;
+		UCombatComponent* Combat;
 
-	/*
-	*	EquipButtonPressed only allows the server controller to equip a weapon but if clients want to then they need to send a request to the server
-	*	We will use a Remote Procedure Call. This is a function that sends infomation from the client to the server to let it request information
-	*	To do this we make a function with the UFUNCTION(Server, Reliable) Macro
-	*	Server -> This designates this function to be called only from clients to the server
-	*	Reliable -> Client is guaranteed to recieve confirmation after request is sent to the server (can also be unreliable meaning request can be dropped) 
-	*/
+	/* PlayerController */
+	UPROPERTY()
+		AMPPlayerController* MPPlayerController;
+
+	/* Player State */
+	UPROPERTY()
+		ABamPlayerState* BamPlayerState;
+
+
+	/*********************** Overlapping Weapons. Used with Equip Weapon Functions *************************/
+
+	UPROPERTY(ReplicatedUsing = OnRep_OverlappingWeapon)
+		AWeapon* OverlappingWeapon;
+
+	UFUNCTION()
+		void OnRep_OverlappingWeapon(AWeapon* LastWeapon);
+
 	UFUNCTION(Server, Reliable)
-	void ServerEquipButtonPressed();
+		void ServerEquipButtonPressed();
 
-	// Used for Aim offset yaw and pitch calculations
+	/*********************** Aim offset yaw | pitch calculations | Turn in Place *************************/
 	float AO_Yaw;
 	float AO_Pitch;
 	FRotator StartingAimRotation;
@@ -128,26 +120,30 @@ private:
 	float Interp_AO_Yaw;
 	ETurningState TurningState;
 
+	/*********************** ANIMATION MONTAGES *************************/
+
 	// Section to determine which fire weapon animation to use depending on aim state
 	UPROPERTY(EditAnywhere, Category = Combat)
-	UAnimMontage* FireWeaponMontage;
+		UAnimMontage* FireWeaponMontage;
 
 	// Section to determine which react animation to use depending on which side the hit came from
 	UPROPERTY(EditAnywhere, Category = Combat)
-	UAnimMontage* HitReactMontage;
+		UAnimMontage* HitReactMontage;
 
 	UPROPERTY(EditAnywhere, Category = Combat)
-	UAnimMontage* ElimMontage;
+		UAnimMontage* ElimMontage;
 
 	UPROPERTY(EditAnywhere, Category = Combat)
-	UAnimMontage* ReloadMontage;
+		UAnimMontage* ReloadMontage;
 
 	UPROPERTY(EditAnywhere, Category = Combat)
-	float CameraThreshold = 200.f;
+		float CameraThreshold = 200.f;
 
+	/*********************** Camera *************************/
 	void HideCamera();
 
-	/* Variables for Simulated Proxies Rotation and Turn in Place */
+	/*********************** Simulated Proxies Rotation and Turn in Place *************************/
+
 	// Determine if the root bone should rotate. Should only happen for locally controlled players
 	bool bRotateRootBone;
 	float TurnThreshold = 0.5f;
@@ -157,21 +153,15 @@ private:
 	float TimeSinceLastMovementRep;
 	float CalculateSpeed();
 
-	/* Player Health */
+	/*********************** PLAYER HEALTH *************************/
 	UPROPERTY(EditAnywhere, Category = "Player Stats")
-	float MaxHealth = 100.f;
+		float MaxHealth = 100.f;
+	
 	UPROPERTY(ReplicatedUsing = OnRep_Health, VisibleAnywhere, Category = "Player Stats")
-	float Health = 100.f;
+		float Health = 100.f;
+	
 	UFUNCTION()
-	void OnRep_Health();
-
-	/* PlayerController */
-	UPROPERTY()
-	AMPPlayerController* MPPlayerController;
-
-	/* Player State */
-	UPROPERTY()
-	ABamPlayerState* BamPlayerState;
+		void OnRep_Health();
 
 	/*********************** ELIMINATION AND RESPAWN *************************/
 	bool bIsEliminated = false;
@@ -224,7 +214,7 @@ public:
 	FORCEINLINE bool ShouldRotateRootBone() const { return bRotateRootBone; }
 	// FORCEINLINE float GetHealth() const { return Health; }
 	FORCEINLINE float GetMaxHealth() const { return Health; }
-	ECombatState GetCombatState() const;
+	
 
 public:
 	void SetOverlappingWeapon(AWeapon* Weapon);
@@ -244,4 +234,6 @@ public:
 	void MulticastEliminated();
 
 	bool GetIsEliminated() const { return bIsEliminated; }
+
+	ECombatState GetCombatState() const;
 };

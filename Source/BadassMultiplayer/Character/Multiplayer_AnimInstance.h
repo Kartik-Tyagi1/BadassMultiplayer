@@ -21,39 +21,40 @@ public:
 
 private:
 	UPROPERTY(BlueprintReadOnly, Category = Character, meta = (AllowPrivateAccess = "true"))
-	class AMultiplayerCharacter* MC;
+		class AMultiplayerCharacter* MC;
+	
+	UPROPERTY()
+		AWeapon* EquippedWeapon;
 
 	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
-	float Speed;
+		float Speed;
 
 	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
-	bool bIsInAir;
+		bool bIsInAir;
 
 	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
-	bool bIsMoving;
+		bool bIsMoving;
 
 	UPROPERTY(BlueprintReadOnly, Category = Character, meta = (AllowPrivateAccess = "true"))
-	bool bIsWeaponEquipped;
+		bool bIsWeaponEquipped;
 
 	UPROPERTY(BlueprintReadOnly, Category = Character, meta = (AllowPrivateAccess = "true"))
-	bool bUseFabrik;
-
-	AWeapon* EquippedWeapon;
+		bool bUseFabrik;
 
 	UPROPERTY(BlueprintReadOnly, Category = Character, meta = (AllowPrivateAccess = "true"))
-	bool bIsCrouched;
+		bool bIsCrouched;
 
 	UPROPERTY(BlueprintReadOnly, Category = Character, meta = (AllowPrivateAccess = "true"))
-	bool bIsEliminated;
+		bool bIsEliminated;
 
 	UPROPERTY(BlueprintReadOnly, Category = Character, meta = (AllowPrivateAccess = "true"))
-	bool bIsAiming;
+		bool bIsAiming;
 
 	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
-	float YawOffset;
+		float YawOffset;
 
 	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
-	float Lean;
+		float Lean;
 
 	
 	FRotator CharacterRotationLastFrame;
@@ -63,26 +64,26 @@ private:
 
 	// Aim Offset Yaw
 	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
-	float AO_Yaw;
+		float AO_Yaw;
 
 	// Aim Offset Pitch
 	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
-	float AO_Pitch;
+		float AO_Pitch;
 
 	// For FABRIK 
 	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
-	FTransform LeftHandTransform;
+		FTransform LeftHandTransform;
 
 	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
-	ETurningState TurningState;
+		ETurningState TurningState;
 
 	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
-	FRotator RightHandRotation;
+		FRotator RightHandRotation;
 
 	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
-	bool bLocallyControlled;
+		bool bLocallyControlled;
 
 	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
-	bool bRotateRootBone;
+		bool bRotateRootBone;
 	
 };

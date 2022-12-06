@@ -69,44 +69,31 @@ protected:
 	void HandleReload();
 
 private:
+	/********************************** COMPONENTS ***************************************/
 	UPROPERTY()
-	AMultiplayerCharacter* Character;
+		AMultiplayerCharacter* Character;
 
 	UPROPERTY()
-	AMPPlayerController* Controller;
+		AMPPlayerController* Controller;
 
 	UPROPERTY()
-	ABadassHUD* HUD;
+		ABadassHUD* HUD;
+
+	/********************************** Weapon and Firing ***************************************/
 
 	UPROPERTY(ReplicatedUsing = OnRep_EquippedWeapon)
-	AWeapon* EquippedWeapon;
+		AWeapon* EquippedWeapon;
 
 	UPROPERTY(Replicated)
-	bool bIsAiming;
+		bool bIsAiming;
 
 	UPROPERTY(EditAnywhere)
-	float BaseWalkSpeed;
-
-	UPROPERTY(EditAnywhere)
-	float AimWalkSpeed;
+		float AimWalkSpeed;
 
 	bool bFireButtonPressed;
 
-	/* HUD and Crosshair Caluclation Variables */
-	float CrosshairVelocityFactor;
-	float CrosshairJumpFactor;
-	float CrosshairAimFactor;
-	float CrosshairShootingFactor;
-	FHUDPackage Package;
-
-	FVector HitTarget;
-
-	/* Aiming and FOV */
-	float DefaultFOV;
-	float CurrentFOV;
-
-	UPROPERTY(EditAnywhere, Category = Aiming)
-	float ZoomUninterpSpeed = 20.f;
+	UPROPERTY(EditAnywhere)
+		float BaseWalkSpeed;
 
 	/* Automatic Fire */
 	FTimerHandle FireTimer;
@@ -115,6 +102,26 @@ private:
 	void EndFireTimer();
 
 	bool CanFire();
+
+	FVector HitTarget;
+
+	/********************************** Crosshair Caluclation Variables ***************************************/
+
+	float CrosshairVelocityFactor;
+	float CrosshairJumpFactor;
+	float CrosshairAimFactor;
+	float CrosshairShootingFactor;
+	FHUDPackage Package;
+
+	/********************************** FOV ***************************************/
+
+	float DefaultFOV;
+	float CurrentFOV;
+
+	UPROPERTY(EditAnywhere, Category = Aiming)
+	float ZoomUninterpSpeed = 20.f;
+
+	/********************************** Combat State ***************************************/
 
 	UPROPERTY(ReplicatedUsing = OnRep_CombatState)
 	ECombatState CombatState = ECombatState::ECS_Unoccupied;
