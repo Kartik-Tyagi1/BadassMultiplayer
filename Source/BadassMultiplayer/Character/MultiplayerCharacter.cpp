@@ -101,6 +101,12 @@ void AMultiplayerCharacter::BeginPlay()
 		OnTakeAnyDamage.AddDynamic(this, &AMultiplayerCharacter::RecieveDamage);
 	}
 
+	AMPPlayerController* PlayerController = Cast<AMPPlayerController>(Controller);
+	if (PlayerController)
+	{
+		PlayerController->ClearElimText();
+	}
+
 	UpdateHUDHealth();
 }
 
@@ -588,16 +594,26 @@ void AMultiplayerCharacter::PollInit()
 	}
 }
 
-void AMultiplayerCharacter::Eliminated()
+void AMultiplayerCharacter::Eliminated(APlayerController* AttackerController)
 {
+	FString AttackerName = FString();
+	AMPPlayerController* AttackerPlayerController = Cast<AMPPlayerController>(AttackerController);
+	if (AttackerPlayerController)
+	{
+		ABamPlayerState* AttackerBlasterPlayerState = Cast<ABamPlayerState>(AttackerPlayerController->PlayerState);
+		if (AttackerBlasterPlayerState)
+		{
+			AttackerName = AttackerBlasterPlayerState->GetPlayerName();
+		}
+	}
 	// Call Elimination on server and clients
-	MulticastEliminated();
+	MulticastEliminated(AttackerName);
 
 	// Start the Respawn Timer
 	GetWorldTimerManager().SetTimer(RespawnTimer, this, &AMultiplayerCharacter::EndRespawnTimer, RespawnDelay);
 }
 
-void AMultiplayerCharacter::MulticastEliminated_Implementation()
+void AMultiplayerCharacter::MulticastEliminated_Implementation(const FString& AttackerName)
 {
 	bIsEliminated = true;
 
@@ -624,10 +640,13 @@ void AMultiplayerCharacter::MulticastEliminated_Implementation()
 	// Stop Player Input/Movement
 	GetCharacterMovement()->DisableMovement();
 	GetCharacterMovement()->StopMovementImmediately();
+
 	if (MPPlayerController)
 	{
 		DisableInput(MPPlayerController);
+		MPPlayerController->SetElimText(AttackerName);
 	}
+
 	// Stop Collisions
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
@@ -658,6 +677,10 @@ void AMultiplayerCharacter::EndRespawnTimer()
 	ABamGameMode* BamGameMode = GetWorld()->GetAuthGameMode<ABamGameMode>();
 	if (BamGameMode)
 	{
+		if (AMPPlayerController* PlayerController = Cast<AMPPlayerController>(Controller))
+		{
+			PlayerController->ClearElimText();
+		}
 		BamGameMode->RequestPlayerRespawn(this, Controller);
 	}
 	

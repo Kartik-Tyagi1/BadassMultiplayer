@@ -23,6 +23,8 @@ public:
 	void SetHUDWeaponAmmo(int32 Ammo); // Ammo In the Weapon 
 	void SetHUDCarriedAmmo(int32 CarriedAmmo); // Ammo In the Weapon 
 	void SetHUDWeaponType(EWeaponType WeaponType);
+	void SetElimText(FString Text);
+	void ClearElimText();
 	virtual void OnPossess(APawn* InPawn) override;
 
 protected:

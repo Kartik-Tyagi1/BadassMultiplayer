@@ -29,7 +29,7 @@ void ABamGameMode::PlayerEliminated(AMultiplayerCharacter* EliminatedCharacter, 
 
 	if (EliminatedCharacter)
 	{
-		EliminatedCharacter->Eliminated();
+		EliminatedCharacter->Eliminated(AttackerController);
 	}
 }
 

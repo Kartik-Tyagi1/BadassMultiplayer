@@ -108,6 +108,43 @@ void AMPPlayerController::SetHUDWeaponType(EWeaponType WeaponType)
 	}
 }
 
+void AMPPlayerController::SetElimText(FString Text)
+{
+	BadassHUD = BadassHUD == nullptr ? Cast<ABadassHUD>(GetHUD()) : BadassHUD;
+
+	bool bIsHUDValid = BadassHUD && BadassHUD->CharacterOverlay &&
+		BadassHUD->CharacterOverlay->ElimText;
+
+	if (bIsHUDValid)
+	{
+		if (Text.IsEmpty())
+		{
+			FString TextToDisplay = FString::Printf(TEXT("You killed yourself"));
+			BadassHUD->CharacterOverlay->ElimText->SetText(FText::FromString(TextToDisplay));
+		}
+		else
+		{
+			FString TextToDisplay = FString::Printf(TEXT("You were killed by \r %s"), *Text);
+			BadassHUD->CharacterOverlay->ElimText->SetText(FText::FromString(TextToDisplay));
+		}
+		BadassHUD->CharacterOverlay->ElimText->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+	}
+}
+
+void AMPPlayerController::ClearElimText()
+{
+	BadassHUD = BadassHUD == nullptr ? Cast<ABadassHUD>(GetHUD()) : BadassHUD;
+
+	bool bIsHUDValid = BadassHUD && BadassHUD->CharacterOverlay &&
+		BadassHUD->CharacterOverlay->ElimText;
+
+	if (bIsHUDValid)
+	{
+		BadassHUD->CharacterOverlay->ElimText->SetText(FText());
+		BadassHUD->CharacterOverlay->ElimText->SetVisibility(ESlateVisibility::Collapsed);
+	}
+}
+
 void AMPPlayerController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);

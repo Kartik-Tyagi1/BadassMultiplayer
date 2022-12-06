@@ -227,11 +227,11 @@ public:
 	UCameraComponent* GetCamera() { return Camera; }
 
 	// Server Eliminination Stuff
-	void Eliminated();
+	void Eliminated(APlayerController* AttackerController);
 
 	// Server and Client Elimination Stuff
 	UFUNCTION(NetMulticast, Reliable)
-	void MulticastEliminated();
+	void MulticastEliminated(const FString& AttackerName);
 
 	bool GetIsEliminated() const { return bIsEliminated; }
 
