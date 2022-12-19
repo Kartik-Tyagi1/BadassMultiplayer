@@ -23,14 +23,20 @@ public:
 	void SetHUDWeaponAmmo(int32 Ammo); // Ammo In the Weapon 
 	void SetHUDCarriedAmmo(int32 CarriedAmmo); // Ammo In the Weapon 
 	void SetHUDWeaponType(EWeaponType WeaponType);
+	void SetHUDMatchTimer(float CountdownTime);
 	void SetElimText(FString Text);
 	void ClearElimText();
 	virtual void OnPossess(APawn* InPawn) override;
 
 protected:
 	virtual void BeginPlay() override;
+	virtual void Tick(float DeltaTime) override;
+	void SetHUDTime();
 
 private:
 	UPROPERTY()
 	ABadassHUD* BadassHUD;
+
+	float MatchTime = 120.f;
+	uint32 CountdownInt = 0;
 };

@@ -11,6 +11,12 @@ void AMPPlayerController::BeginPlay()
 	BadassHUD = Cast<ABadassHUD>(GetHUD());
 }
 
+void AMPPlayerController::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+	SetHUDTime();
+}
+
 void AMPPlayerController::SetHUDHealthStats(float Health, float MaxHealth)
 {
 	BadassHUD = BadassHUD == nullptr ? Cast<ABadassHUD>(GetHUD()) : BadassHUD;
@@ -145,6 +151,23 @@ void AMPPlayerController::ClearElimText()
 	}
 }
 
+void AMPPlayerController::SetHUDMatchTimer(float CountdownTime)
+{
+	BadassHUD = BadassHUD == nullptr ? Cast<ABadassHUD>(GetHUD()) : BadassHUD;
+
+	bool bIsHUDValid = BadassHUD && BadassHUD->CharacterOverlay &&
+		BadassHUD->CharacterOverlay->MatchTimerText;
+
+	if (bIsHUDValid)
+	{
+		int32 Minutes = FMath::FloorToInt(CountdownTime / 60.f);
+		int32 Seconds = CountdownTime - Minutes * 60;
+
+		FString MatchTimerString = FString::Printf(TEXT("%02d:%02d"), Minutes, Seconds);
+		BadassHUD->CharacterOverlay->MatchTimerText->SetText(FText::FromString(MatchTimerString));
+	}
+}
+
 void AMPPlayerController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
@@ -153,4 +176,18 @@ void AMPPlayerController::OnPossess(APawn* InPawn)
 	{
 		SetHUDHealthStats(MPCharacter->GetMaxHealth(), MPCharacter->GetMaxHealth());
 	}
+}
+
+void AMPPlayerController::SetHUDTime()
+{
+	uint32 SecondsLeft = FMath::CeilToInt(MatchTime - GetWorld()->GetTimeSeconds());
+
+	// This function will be called each frame but we only want HUD updated each second so we make a check to see how much time has passed
+	//   Once the seconds left is equal to the countdown then we can updated
+	if (CountdownInt != SecondsLeft)
+	{
+		SetHUDMatchTimer(MatchTime - GetWorld()->GetTimeSeconds());
+	}
+	
+	CountdownInt = SecondsLeft;
 }
