@@ -60,6 +60,8 @@ protected:
 
 	void PollInit();
 
+	void HandleMatchHasStarted();
+
 private:
 	UPROPERTY()
 		ABadassHUD* BadassHUD;

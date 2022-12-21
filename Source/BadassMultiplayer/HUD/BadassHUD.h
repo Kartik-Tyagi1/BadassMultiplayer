@@ -24,6 +24,7 @@ public:
  */
 
 class UCharacterOverlay;
+class UAnnouncement;
 
 UCLASS()
 class BADASSMULTIPLAYER_API ABadassHUD : public AHUD
@@ -33,12 +34,19 @@ class BADASSMULTIPLAYER_API ABadassHUD : public AHUD
 public:
 	virtual void DrawHUD() override;
 	void AddCharacterOverlay(); // Called From Controller Depending on MatchState
+	void AddAnnouncement();
 
 	UPROPERTY(EditAnywhere, Category="Player Stats")
-	TSubclassOf<UUserWidget> CharacterOverlayClass;
+		TSubclassOf<UUserWidget> CharacterOverlayClass;
 
 	UPROPERTY()
-	UCharacterOverlay* CharacterOverlay;
+		UCharacterOverlay* CharacterOverlay;
+
+	UPROPERTY(EditAnywhere, Category = "Announcements")
+		TSubclassOf<UUserWidget> AnnouncementClass;
+
+	UPROPERTY()
+		UAnnouncement* Announcement;
 
 protected:
 	virtual void BeginPlay() override;
@@ -50,7 +58,7 @@ private:
 
 	// Allows us to control the spread from here and the logic will just control the direction and base amount
 	UPROPERTY(EditAnywhere)
-	float CrosshairSpreadMax = 16.f;
+		float CrosshairSpreadMax = 16.f;
 
 public:
 	FORCEINLINE void SetHUDPackage(const FHUDPackage& Package) { HUDPackage = Package; }

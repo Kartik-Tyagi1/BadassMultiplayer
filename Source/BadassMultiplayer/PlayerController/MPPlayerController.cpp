@@ -1,6 +1,7 @@
 #include "MPPlayerController.h"
 #include "BadassMultiplayer/HUD/BadassHUD.h"
 #include "BadassMultiplayer/HUD/CharacterOverlay.h"
+#include "BadassMultiplayer/HUD/Announcement.h"
 #include "Components/ProgressBar.h"
 #include "Components/TextBlock.h"
 #include "BadassMultiplayer/Character/MultiplayerCharacter.h"
@@ -12,6 +13,10 @@ void AMPPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
 	BadassHUD = Cast<ABadassHUD>(GetHUD());
+	if (BadassHUD)
+	{
+		BadassHUD->AddAnnouncement();
+	}
 }
 
 void AMPPlayerController::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -270,13 +275,10 @@ float AMPPlayerController::GetServerTime()
 void AMPPlayerController::OnMatchStateSet(FName State)
 {
 	MatchState = State;
+
 	if (MatchState == MatchState::InProgress)
 	{
-		BadassHUD = BadassHUD == nullptr ? Cast<ABadassHUD>(GetHUD()) : BadassHUD;
-		if (BadassHUD)
-		{
-			BadassHUD->AddCharacterOverlay();
-		}
+		HandleMatchHasStarted();
 	}
 
 }
@@ -285,10 +287,19 @@ void AMPPlayerController::OnRep_MatchState()
 {
 	if (MatchState == MatchState::InProgress)
 	{
-		BadassHUD = BadassHUD == nullptr ? Cast<ABadassHUD>(GetHUD()) : BadassHUD;
-		if (BadassHUD)
+		HandleMatchHasStarted();
+	}
+}
+
+void AMPPlayerController::HandleMatchHasStarted()
+{
+	BadassHUD = BadassHUD == nullptr ? Cast<ABadassHUD>(GetHUD()) : BadassHUD;
+	if (BadassHUD)
+	{
+		BadassHUD->AddCharacterOverlay();
+		if (BadassHUD->Announcement)
 		{
-			BadassHUD->AddCharacterOverlay();
+			BadassHUD->Announcement->SetVisibility(ESlateVisibility::Hidden);
 		}
 	}
 }
@@ -306,4 +317,6 @@ void AMPPlayerController::PollInit()
 		}
 	}
 }
+
+
 
