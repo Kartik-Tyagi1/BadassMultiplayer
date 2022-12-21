@@ -311,6 +311,10 @@ void AMPPlayerController::OnMatchStateSet(FName State)
 	{
 		HandleMatchHasStarted();
 	}
+	else if (MatchState == MatchState::Cooldown)
+	{
+		HandleCooldown();
+	}
 
 }
 
@@ -319,6 +323,10 @@ void AMPPlayerController::OnRep_MatchState()
 	if (MatchState == MatchState::InProgress)
 	{
 		HandleMatchHasStarted();
+	}
+	else if (MatchState == MatchState::Cooldown)
+	{
+		HandleCooldown();
 	}
 }
 
@@ -331,6 +339,19 @@ void AMPPlayerController::HandleMatchHasStarted()
 		if (BadassHUD->Announcement)
 		{
 			BadassHUD->Announcement->SetVisibility(ESlateVisibility::Hidden);
+		}
+	}
+}
+
+void AMPPlayerController::HandleCooldown()
+{
+	BadassHUD = BadassHUD == nullptr ? Cast<ABadassHUD>(GetHUD()) : BadassHUD;
+	if (BadassHUD)
+	{
+		BadassHUD->CharacterOverlay->RemoveFromParent();
+		if (BadassHUD->Announcement)
+		{
+			BadassHUD->Announcement->SetVisibility(ESlateVisibility::Visible);
 		}
 	}
 }

@@ -6,6 +6,11 @@
 #include "GameFramework/GameMode.h"
 #include "BamGameMode.generated.h"
 
+namespace MatchState 
+{
+	extern BADASSMULTIPLAYER_API const FName Cooldown; // Match duration has been reached. Display Winner and begin cooldown timer
+}
+
 /**
  * 
  */
@@ -30,7 +35,12 @@ public:
 	UPROPERTY(EditDefaultsOnly)
 	float MatchTime = 120.f;
 
+	UPROPERTY(EditDefaultsOnly)
+	float CooldownTime = 10.f;
+
 	float LevelStartingTime = 0.f;
+
+
 
 
 protected:

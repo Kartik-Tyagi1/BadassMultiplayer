@@ -97,5 +97,6 @@ private:
 public: 
 	void OnMatchStateSet(FName State);
 	void HandleMatchHasStarted();
+	void HandleCooldown();
 
 };
