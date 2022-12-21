@@ -26,6 +26,7 @@ public:
 	void SetHUDCarriedAmmo(int32 CarriedAmmo); // Ammo In the Weapon 
 	void SetHUDWeaponType(EWeaponType WeaponType);
 	void SetHUDMatchTimer(float CountdownTime);
+	void SetHUDAnnouncementCountdown(float CountdownTime);
 	void SetElimText(FString Text);
 	void ClearElimText();
 	virtual void OnPossess(APawn* InPawn) override;
@@ -60,13 +61,19 @@ protected:
 
 	void PollInit();
 
-	void HandleMatchHasStarted();
+	UFUNCTION(Server, Reliable)
+	void ServerCheckMatchState();
+
+	UFUNCTION(Client, Reliable)
+	void ClientJoinMidGame(FName StateOfMatch, float Match, float Warmup, float StartingTime);
 
 private:
 	UPROPERTY()
 		ABadassHUD* BadassHUD;
 
-	float MatchTime = 120.f;
+	float MatchTime = 0.f;
+	float WarmupTime = 0.f;
+	float LevelStartingTime = 0.f;
 	uint32 CountdownInt = 0;
 
 	UPROPERTY(Replicated, ReplicatedUsing=OnRep_MatchState)
@@ -89,5 +96,6 @@ private:
 
 public: 
 	void OnMatchStateSet(FName State);
+	void HandleMatchHasStarted();
 
 };

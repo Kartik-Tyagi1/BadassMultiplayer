@@ -7,16 +7,16 @@
 #include "BadassMultiplayer/Character/MultiplayerCharacter.h"
 #include "Net/UnrealNetwork.h"
 #include "BadassMultiplayer/GameModes/BamGameMode.h"
+#include "Kismet/GameplayStatics.h"
 
 
 void AMPPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
+
 	BadassHUD = Cast<ABadassHUD>(GetHUD());
-	if (BadassHUD)
-	{
-		BadassHUD->AddAnnouncement();
-	}
+	ServerCheckMatchState();
+
 }
 
 void AMPPlayerController::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -220,6 +220,23 @@ void AMPPlayerController::SetHUDMatchTimer(float CountdownTime)
 	}
 }
 
+void AMPPlayerController::SetHUDAnnouncementCountdown(float CountdownTime)
+{
+	BadassHUD = BadassHUD == nullptr ? Cast<ABadassHUD>(GetHUD()) : BadassHUD;
+
+	bool bIsHUDValid = BadassHUD && BadassHUD->Announcement &&
+		BadassHUD->Announcement->WarmupTime;
+
+	if (bIsHUDValid)
+	{
+		int32 Minutes = FMath::FloorToInt(CountdownTime / 60.f);
+		int32 Seconds = CountdownTime - Minutes * 60;
+
+		FString CountdownString = FString::Printf(TEXT("%02d:%02d"), Minutes, Seconds);
+		BadassHUD->Announcement->WarmupTime->SetText(FText::FromString(CountdownString));
+	}
+}
+
 void AMPPlayerController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
@@ -232,13 +249,27 @@ void AMPPlayerController::OnPossess(APawn* InPawn)
 
 void AMPPlayerController::SetHUDTime()
 {
-	uint32 SecondsLeft = FMath::CeilToInt(MatchTime - GetServerTime());
+
+	float TimeLeft = 0.f;
+	if (MatchState == MatchState::WaitingToStart) TimeLeft = WarmupTime - GetServerTime() + LevelStartingTime;
+	else if (MatchState == MatchState::InProgress) TimeLeft = WarmupTime + MatchTime - GetServerTime() + LevelStartingTime;
+
+
+
+	uint32 SecondsLeft = FMath::CeilToInt(TimeLeft);
 
 	// This function will be called each frame but we only want HUD updated each second so we make a check to see how much time has passed
 	//   Once the seconds left is equal to the countdown then we can updated
 	if (CountdownInt != SecondsLeft)
 	{
-		SetHUDMatchTimer(MatchTime - GetServerTime());
+		if (MatchState == MatchState::WaitingToStart)
+		{
+			SetHUDAnnouncementCountdown(TimeLeft);
+		}
+		if (MatchState == MatchState::InProgress)
+		{
+			SetHUDMatchTimer(TimeLeft);
+		}
 	}
 	
 	CountdownInt = SecondsLeft;
@@ -301,6 +332,33 @@ void AMPPlayerController::HandleMatchHasStarted()
 		{
 			BadassHUD->Announcement->SetVisibility(ESlateVisibility::Hidden);
 		}
+	}
+}
+
+void AMPPlayerController::ServerCheckMatchState_Implementation()
+{
+	ABamGameMode* BamGameMode = Cast<ABamGameMode>(UGameplayStatics::GetGameMode(this));
+	if (BamGameMode)
+	{
+		WarmupTime = BamGameMode->WarmupTime;
+		MatchTime = BamGameMode->MatchTime;
+		LevelStartingTime = BamGameMode->LevelStartingTime;
+		MatchState = BamGameMode->GetMatchState();
+		ClientJoinMidGame(MatchState, MatchTime, WarmupTime, LevelStartingTime);
+	}
+}
+
+void AMPPlayerController::ClientJoinMidGame_Implementation(FName StateOfMatch, float Match, float Warmup, float StartingTime)
+{
+	WarmupTime = Warmup;
+	MatchTime = Match;
+	LevelStartingTime = StartingTime;
+	MatchState = StateOfMatch;
+	OnMatchStateSet(MatchState);
+
+	if (BadassHUD && MatchState == MatchState::WaitingToStart)
+	{
+		BadassHUD->AddAnnouncement();
 	}
 }
 
