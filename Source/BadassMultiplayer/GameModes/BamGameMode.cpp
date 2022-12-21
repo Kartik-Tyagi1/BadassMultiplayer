@@ -8,6 +8,34 @@
 #include "GameFramework/PlayerStart.h"
 #include "BadassMultiplayer/PlayerState/BamPlayerState.h"
 
+ABamGameMode::ABamGameMode()
+{
+	bDelayedStart = true;
+}
+
+void ABamGameMode::BeginPlay()
+{
+	Super::BeginPlay();
+
+	// Time since when the multiplayer map is loaded and not when the game loads (aka the "host/join" menu screen)
+	LevelStartingTime = GetWorld()->GetTimeSeconds();
+}
+
+
+void ABamGameMode::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	if (MatchState == MatchState::WaitingToStart)
+	{
+		CountdownTime = WarmupTime - GetWorld()->GetTimeSeconds() + LevelStartingTime;
+		if (CountdownTime <= 0.f)
+		{
+			StartMatch();
+		}
+	}
+}
+
 void ABamGameMode::PlayerEliminated(AMultiplayerCharacter* EliminatedCharacter, AMPPlayerController* VictimController, AMPPlayerController* AttackerController)
 {
 	if (AttackerController == nullptr || AttackerController->PlayerState == nullptr) return;
@@ -51,3 +79,4 @@ void ABamGameMode::RequestPlayerRespawn(ACharacter* EliminatedCharacter, AContro
 		RestartPlayerAtPlayerStart(EliminatedController, PlayerStarts[Selection]);
 	}
 }
+
