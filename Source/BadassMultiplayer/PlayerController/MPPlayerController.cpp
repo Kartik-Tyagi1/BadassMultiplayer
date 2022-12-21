@@ -15,7 +15,28 @@ void AMPPlayerController::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	SetHUDTime();
+	CheckTimeSync(DeltaTime);
 }
+
+void AMPPlayerController::CheckTimeSync(float DeltaTime)
+{
+	TimeSyncRunningTime += DeltaTime;
+	if (IsLocalController() && TimeSyncRunningTime > TimeSyncFrequency)
+	{
+		ServerRequestServerTime(GetWorld()->GetTimeSeconds());
+		TimeSyncRunningTime = 0.f;
+	}
+}
+
+void AMPPlayerController::ReceivedPlayer()
+{
+	Super::ReceivedPlayer();
+	if (IsLocalController())
+	{
+		ServerRequestServerTime(GetWorld()->GetTimeSeconds());
+	}
+}
+
 
 void AMPPlayerController::SetHUDHealthStats(float Health, float MaxHealth)
 {
@@ -180,14 +201,42 @@ void AMPPlayerController::OnPossess(APawn* InPawn)
 
 void AMPPlayerController::SetHUDTime()
 {
-	uint32 SecondsLeft = FMath::CeilToInt(MatchTime - GetWorld()->GetTimeSeconds());
+	uint32 SecondsLeft = FMath::CeilToInt(MatchTime - GetServerTime());
 
 	// This function will be called each frame but we only want HUD updated each second so we make a check to see how much time has passed
 	//   Once the seconds left is equal to the countdown then we can updated
 	if (CountdownInt != SecondsLeft)
 	{
-		SetHUDMatchTimer(MatchTime - GetWorld()->GetTimeSeconds());
+		SetHUDMatchTimer(MatchTime - GetServerTime());
 	}
 	
 	CountdownInt = SecondsLeft;
 }
+
+
+void AMPPlayerController::ServerRequestServerTime_Implementation(float TimeOfClientRequest)
+{
+	float ServerRecivedClientRequest = GetWorld()->GetTimeSeconds();
+	ClientReportServerTime(TimeOfClientRequest, ServerRecivedClientRequest);
+}
+
+void AMPPlayerController::ClientReportServerTime_Implementation(float TimeOfClientRequest, float TimeServerRecievedClientRequest)
+{
+	const float RoundTripTime = GetWorld()->GetTimeSeconds() - TimeOfClientRequest;
+	const float CurrentServerTime = TimeServerRecievedClientRequest + (RoundTripTime *  0.5f); // This can also be Time on Client Machine + RoundTrip Time
+
+	ClientServerDelta = CurrentServerTime - GetWorld()->GetTimeSeconds();
+}
+
+float AMPPlayerController::GetServerTime()
+{
+	if (HasAuthority())
+	{
+		return GetWorld()->GetTimeSeconds();
+	}
+	else
+	{
+		return GetWorld()->GetTimeSeconds() + ClientServerDelta;
+	}
+}
+
