@@ -21,7 +21,6 @@ void ABamGameMode::BeginPlay()
 	LevelStartingTime = GetWorld()->GetTimeSeconds();
 }
 
-
 void ABamGameMode::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
@@ -35,6 +34,20 @@ void ABamGameMode::Tick(float DeltaTime)
 		}
 	}
 }
+
+void ABamGameMode::OnMatchStateSet()
+{
+	Super::OnMatchStateSet();
+	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+	{
+		AMPPlayerController* Player = Cast<AMPPlayerController>(*It);
+		if (Player)
+		{
+			Player->OnMatchStateSet(MatchState);
+		}
+	}
+}
+
 
 void ABamGameMode::PlayerEliminated(AMultiplayerCharacter* EliminatedCharacter, AMPPlayerController* VictimController, AMPPlayerController* AttackerController)
 {

@@ -10,6 +10,7 @@
  */
 
 class ABadassHUD;
+class UCharacterOverlay;
 
 UCLASS()
 class BADASSMULTIPLAYER_API AMPPlayerController : public APlayerController
@@ -17,6 +18,7 @@ class BADASSMULTIPLAYER_API AMPPlayerController : public APlayerController
 	GENERATED_BODY()
 
 public:
+	virtual void GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& OutLifetimeProps) const override;
 	void SetHUDHealthStats(float Health, float MaxHealth);
 	void SetHUDKillCount(float Kills);
 	void SetHUDDefeats(int32 Defeats);
@@ -56,11 +58,34 @@ protected:
 
 	void CheckTimeSync(float DeltaTime);
 
+	void PollInit();
+
 private:
 	UPROPERTY()
-	ABadassHUD* BadassHUD;
+		ABadassHUD* BadassHUD;
 
 	float MatchTime = 120.f;
 	uint32 CountdownInt = 0;
+
+	UPROPERTY(Replicated, ReplicatedUsing=OnRep_MatchState)
+		FName MatchState;
+
+	UFUNCTION()
+		void OnRep_MatchState();
+	
+	UPROPERTY()
+		UCharacterOverlay* CharacterOverlay;
+
+	bool bInitializeCharacterOverlay = false;
+
+	/* Cached values that will be used to initialize the HUD */
+	float HUDHealth;
+	float HUDMaxHealth;
+	float HUDKills;
+	int32 HUDDeaths;
+
+
+public: 
+	void OnMatchStateSet(FName State);
 
 };

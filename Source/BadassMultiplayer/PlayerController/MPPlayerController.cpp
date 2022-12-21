@@ -4,6 +4,9 @@
 #include "Components/ProgressBar.h"
 #include "Components/TextBlock.h"
 #include "BadassMultiplayer/Character/MultiplayerCharacter.h"
+#include "Net/UnrealNetwork.h"
+#include "BadassMultiplayer/GameModes/BamGameMode.h"
+
 
 void AMPPlayerController::BeginPlay()
 {
@@ -11,11 +14,19 @@ void AMPPlayerController::BeginPlay()
 	BadassHUD = Cast<ABadassHUD>(GetHUD());
 }
 
+void AMPPlayerController::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(AMPPlayerController, MatchState);
+}
+
 void AMPPlayerController::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	SetHUDTime();
 	CheckTimeSync(DeltaTime);
+	PollInit();
 }
 
 void AMPPlayerController::CheckTimeSync(float DeltaTime)
@@ -37,7 +48,6 @@ void AMPPlayerController::ReceivedPlayer()
 	}
 }
 
-
 void AMPPlayerController::SetHUDHealthStats(float Health, float MaxHealth)
 {
 	BadassHUD = BadassHUD == nullptr ? Cast<ABadassHUD>(GetHUD()) : BadassHUD;
@@ -51,6 +61,12 @@ void AMPPlayerController::SetHUDHealthStats(float Health, float MaxHealth)
 		BadassHUD->CharacterOverlay->HealthBar->SetPercent(HealthPercent);
 		FString HealthTextString = FString::Printf(TEXT("%d/%d"), FMath::CeilToInt(Health), FMath::CeilToInt(MaxHealth));
 		BadassHUD->CharacterOverlay->HealthText->SetText(FText::FromString(HealthTextString));
+	}
+	else
+	{
+		bInitializeCharacterOverlay = true;
+		HUDHealth = Health;
+		HUDMaxHealth = MaxHealth;
 	}
 }
 
@@ -66,6 +82,11 @@ void AMPPlayerController::SetHUDKillCount(float Kills)
 		FString KillString = FString::Printf(TEXT("%d"), FMath::FloorToInt(Kills));
 		BadassHUD->CharacterOverlay->KillCount->SetText(FText::FromString(KillString));
 	}
+	else
+	{
+		bInitializeCharacterOverlay = true;
+		HUDKills = Kills;
+	}
 
 }
 
@@ -80,6 +101,11 @@ void AMPPlayerController::SetHUDDefeats(int32 Defeats)
 	{
 		FString DefeatsString = FString::Printf(TEXT("%d"), Defeats);
 		BadassHUD->CharacterOverlay->DefeatsAmount->SetText(FText::FromString(DefeatsString));
+	}
+	else
+	{
+		bInitializeCharacterOverlay = true;
+		HUDDeaths = Defeats;
 	}
 }
 
@@ -237,6 +263,47 @@ float AMPPlayerController::GetServerTime()
 	else
 	{
 		return GetWorld()->GetTimeSeconds() + ClientServerDelta;
+	}
+}
+
+
+void AMPPlayerController::OnMatchStateSet(FName State)
+{
+	MatchState = State;
+	if (MatchState == MatchState::InProgress)
+	{
+		BadassHUD = BadassHUD == nullptr ? Cast<ABadassHUD>(GetHUD()) : BadassHUD;
+		if (BadassHUD)
+		{
+			BadassHUD->AddCharacterOverlay();
+		}
+	}
+
+}
+
+void AMPPlayerController::OnRep_MatchState()
+{
+	if (MatchState == MatchState::InProgress)
+	{
+		BadassHUD = BadassHUD == nullptr ? Cast<ABadassHUD>(GetHUD()) : BadassHUD;
+		if (BadassHUD)
+		{
+			BadassHUD->AddCharacterOverlay();
+		}
+	}
+}
+
+void AMPPlayerController::PollInit()
+{
+	if (CharacterOverlay == nullptr)
+	{
+		if (BadassHUD && BadassHUD->CharacterOverlay)
+		{
+			CharacterOverlay = BadassHUD->CharacterOverlay;
+			SetHUDHealthStats(HUDHealth, HUDMaxHealth);
+			SetHUDKillCount(HUDKills);
+			SetHUDDefeats(HUDDeaths);
+		}
 	}
 }
 

@@ -5,7 +5,6 @@
 void ABadassHUD::BeginPlay()
 {
 	Super::BeginPlay();
-	AddCharacterOverlay();
 }
 
 void ABadassHUD::AddCharacterOverlay()

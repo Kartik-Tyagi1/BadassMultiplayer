@@ -32,15 +32,17 @@ class BADASSMULTIPLAYER_API ABadassHUD : public AHUD
 
 public:
 	virtual void DrawHUD() override;
+	void AddCharacterOverlay(); // Called From Controller Depending on MatchState
 
 	UPROPERTY(EditAnywhere, Category="Player Stats")
 	TSubclassOf<UUserWidget> CharacterOverlayClass;
 
+	UPROPERTY()
 	UCharacterOverlay* CharacterOverlay;
 
 protected:
 	virtual void BeginPlay() override;
-	void AddCharacterOverlay();
+
 
 private:
 	FHUDPackage HUDPackage;
