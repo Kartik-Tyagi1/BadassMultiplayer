@@ -13,8 +13,8 @@
 
 
 UCombatComponent::UCombatComponent():
-	BaseWalkSpeed(600.f),
-	AimWalkSpeed(450.f)
+	AimWalkSpeed(450.f),
+	BaseWalkSpeed(600.f)
 {
 	PrimaryComponentTick.bCanEverTick = true;
 

@@ -7,6 +7,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/PlayerStart.h"
 #include "BadassMultiplayer/PlayerState/BamPlayerState.h"
+#include "BadassMultiplayer/GameState/BamGameState.h"
 
 namespace MatchState
 {
@@ -77,11 +78,14 @@ void ABamGameMode::PlayerEliminated(AMultiplayerCharacter* EliminatedCharacter, 
 
 	ABamPlayerState* AttackerPlayerState = AttackerController ? Cast<ABamPlayerState>(AttackerController->PlayerState) : nullptr;
 	ABamPlayerState* VictimPlayerState = VictimController ? Cast<ABamPlayerState>(VictimController->PlayerState) : nullptr;
+	ABamGameState* BamGameState = GetGameState<ABamGameState>();
 
 	// Check if player didnt kill themselves
-	if (AttackerPlayerState && AttackerPlayerState != VictimPlayerState)
+	if (AttackerPlayerState && AttackerPlayerState != VictimPlayerState && GameState)
 	{
 		AttackerPlayerState->AddToScore(1.f);
+
+		BamGameState->UpdateTopScore(AttackerPlayerState);
 	}
 
 	if (VictimPlayerState)

@@ -597,7 +597,10 @@ void AMultiplayerCharacter::Destroyed()
 	{
 		ElimBotComponent->DestroyComponent();
 	}
-	if (Combat && Combat->EquippedWeapon)
+
+	ABamGameMode* GameMode = Cast<ABamGameMode>(UGameplayStatics::GetGameMode(this));
+	bool bMatchNotInProgress = GameMode && GameMode->GetMatchState() != MatchState::InProgress;
+	if (Combat && Combat->EquippedWeapon && bMatchNotInProgress)
 	{
 		Combat->EquippedWeapon->Destroy();
 	}
@@ -668,6 +671,10 @@ void AMultiplayerCharacter::MulticastEliminated_Implementation(const FString& At
 	GetCharacterMovement()->DisableMovement();
 	GetCharacterMovement()->StopMovementImmediately();
 	bDisableGameplay = true;
+	if (Combat)
+	{
+		Combat->FireButtonPressed(false);
+	}
 
 	if (MPPlayerController)
 	{

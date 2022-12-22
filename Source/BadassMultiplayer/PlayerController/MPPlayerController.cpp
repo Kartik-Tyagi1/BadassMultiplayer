@@ -9,6 +9,8 @@
 #include "BadassMultiplayer/GameModes/BamGameMode.h"
 #include "Kismet/GameplayStatics.h"
 #include "BadassMultiplayer/MultiplayerComponents/CombatComponent.h"
+#include "BadassMultiplayer/GameState/BamGameState.h"
+#include "BadassMultiplayer/PlayerState/BamPlayerState.h"
 
 
 void AMPPlayerController::BeginPlay()
@@ -375,7 +377,38 @@ void AMPPlayerController::HandleCooldown()
 			BadassHUD->Announcement->SetVisibility(ESlateVisibility::Visible);
 			FString AnnouncementString = FString::Printf(TEXT("Match Ended. New Match Starts In:"));
 			BadassHUD->Announcement->AnnouncemetText->SetText(FText::FromString(AnnouncementString));
-			BadassHUD->Announcement->InfoText->SetText(FText());
+
+			ABamGameState* GameState = Cast<ABamGameState>(UGameplayStatics::GetGameState(this));
+			ABamPlayerState* BamPlayerState = GetPlayerState<ABamPlayerState>();
+
+			if (GameState && BamPlayerState)
+			{
+				TArray<ABamPlayerState*> TopPlayers = GameState->TopScoringPlayers;
+				FString InfoString;
+				if (TopPlayers.Num() == 0)
+				{
+					InfoString = FString::Printf(TEXT("All Of You Suck. No Winners"));
+				}
+				else if (TopPlayers.Num() == 1 && TopPlayers[0] == BamPlayerState)
+				{
+					InfoString = FString::Printf(TEXT("Nice Job! You Are The Winner!"));
+				}
+				else if (TopPlayers.Num() == 1)
+				{
+					InfoString = FString::Printf(TEXT("Damn. How You Gonna Lose to: \n%s"), *TopPlayers[0]->GetPlayerName());
+				}
+				else if (TopPlayers.Num() > 1)
+				{
+					InfoString = FString::Printf(TEXT("Damn. You Guys Murderin: \n"));
+					for (auto TiedPlayer : TopPlayers)
+					{
+						InfoString.Append(FString::Printf(TEXT("%s\n"), *TiedPlayer->GetPlayerName()));
+					}
+				}
+
+				BadassHUD->Announcement->InfoText->SetText(FText::FromString(InfoString));
+			}
+
 		}
 	}
 
