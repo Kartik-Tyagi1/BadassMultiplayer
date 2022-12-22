@@ -87,6 +87,8 @@ void AMultiplayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>
 	* To fix this we use RepNotifies (look at .h file)
 	*/
 	DOREPLIFETIME_CONDITION(AMultiplayerCharacter, OverlappingWeapon, COND_OwnerOnly);
+
+	DOREPLIFETIME(AMultiplayerCharacter, bDisableGameplay);
 	
 }
 
@@ -125,22 +127,7 @@ void AMultiplayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	// Greater than compares the enum values
-	if (GetLocalRole() > ENetRole::ROLE_SimulatedProxy && IsLocallyControlled())
-	{
-		// This happens on the locally controlled player
-		CalculateAO(DeltaTime);
-	}
-	else
-	{
-		TimeSinceLastMovementRep += DeltaTime;
-		if (TimeSinceLastMovementRep > 0.25f)
-		{
-			OnRep_ReplicatedMovement();
-		}
-		CalculateAOPitch();
-	}
-
+	RotateInPlace(DeltaTime);
 	HideCamera();
 	PollInit();
 }
@@ -167,6 +154,7 @@ void AMultiplayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInp
 
 void AMultiplayerCharacter::MoveForward(float Value)
 {
+	if (bDisableGameplay) return;
 	if (Controller != nullptr && Value != 0.f)
 	{
 		const FRotator YawRotation( 0.f, Controller->GetControlRotation().Yaw, 0.f );
@@ -177,6 +165,7 @@ void AMultiplayerCharacter::MoveForward(float Value)
 
 void AMultiplayerCharacter::MoveRight(float Value)
 {
+	if (bDisableGameplay) return;
 	if (Controller != nullptr && Value != 0.f)
 	{
 		const FRotator YawRotation(0.f, Controller->GetControlRotation().Yaw, 0.f);
@@ -197,6 +186,7 @@ void AMultiplayerCharacter::LookUp(float Value)
 
 void AMultiplayerCharacter::Jump()
 {
+	if (bDisableGameplay) return;
 	if (bIsCrouched)
 	{
 		// Make character stand up is space bar is pressed when crouching
@@ -263,6 +253,7 @@ void AMultiplayerCharacter::OnRep_OverlappingWeapon(AWeapon* LastWeapon)
 
 void AMultiplayerCharacter::EquipButtonPressed()
 {
+	if (bDisableGameplay) return;
 	// Weapon Equipping should be handled by server so that a proper record of the game is kept
 	if (Combat)
 	{
@@ -280,6 +271,7 @@ void AMultiplayerCharacter::EquipButtonPressed()
 
 void AMultiplayerCharacter::CrouchButtonPressed()
 {
+	if (bDisableGameplay) return;
 	// Crouch() and UnCrouch()  are inherited from Character class and replicate the bIsCrouched variable
 	if (bIsCrouched)
 	{
@@ -293,6 +285,7 @@ void AMultiplayerCharacter::CrouchButtonPressed()
 
 void AMultiplayerCharacter::AimButtonPressed()
 {
+	if (bDisableGameplay) return;
 	if (Combat)
 	{
 		Combat->SetIsAiming(true);
@@ -301,6 +294,7 @@ void AMultiplayerCharacter::AimButtonPressed()
 
 void AMultiplayerCharacter::AimButtonReleased()
 {
+	if (bDisableGameplay) return;
 	if (Combat)
 	{
 		Combat->SetIsAiming(false);
@@ -309,6 +303,7 @@ void AMultiplayerCharacter::AimButtonReleased()
 
 void AMultiplayerCharacter::FireButtonPressed()
 {
+	if (bDisableGameplay) return;
 	if (Combat)
 	{
 		Combat->FireButtonPressed(true);
@@ -317,6 +312,7 @@ void AMultiplayerCharacter::FireButtonPressed()
 
 void AMultiplayerCharacter::FireButtonReleased()
 {
+	if (bDisableGameplay) return;
 	if (Combat)
 	{
 		Combat->FireButtonPressed(false);
@@ -325,6 +321,7 @@ void AMultiplayerCharacter::FireButtonReleased()
 
 void AMultiplayerCharacter::ReloadButtonPressed()
 {
+	if (bDisableGameplay) return;
 	if (Combat)
 	{
 		Combat->Reload();
@@ -473,6 +470,31 @@ void AMultiplayerCharacter::SimProxiesTurnInPlace()
 	TurningState = ETurningState::ETIP_Still;
 }
 
+void AMultiplayerCharacter::RotateInPlace(float DeltaTime)
+{
+	if (bDisableGameplay)
+	{
+		bUseControllerRotationYaw = false;
+		TurningState = ETurningState::ETIP_Still;
+		return;
+	}
+	// Greater than compares the enum values
+	if (GetLocalRole() > ENetRole::ROLE_SimulatedProxy && IsLocallyControlled())
+	{
+		// This happens on the locally controlled player
+		CalculateAO(DeltaTime);
+	}
+	else
+	{
+		TimeSinceLastMovementRep += DeltaTime;
+		if (TimeSinceLastMovementRep > 0.25f)
+		{
+			OnRep_ReplicatedMovement();
+		}
+		CalculateAOPitch();
+	}
+}
+
 void AMultiplayerCharacter::PlayFireMontage(bool bIsAiming)
 {
 	// Dont play any animation if the character doesn't have a weapon
@@ -575,6 +597,10 @@ void AMultiplayerCharacter::Destroyed()
 	{
 		ElimBotComponent->DestroyComponent();
 	}
+	if (Combat && Combat->EquippedWeapon)
+	{
+		Combat->EquippedWeapon->Destroy();
+	}
 }
 
 void AMultiplayerCharacter::PollInit()
@@ -593,6 +619,7 @@ void AMultiplayerCharacter::PollInit()
 		}
 	}
 }
+
 
 void AMultiplayerCharacter::Eliminated(APlayerController* AttackerController)
 {
@@ -640,10 +667,11 @@ void AMultiplayerCharacter::MulticastEliminated_Implementation(const FString& At
 	// Stop Player Input/Movement
 	GetCharacterMovement()->DisableMovement();
 	GetCharacterMovement()->StopMovementImmediately();
+	bDisableGameplay = true;
 
 	if (MPPlayerController)
 	{
-		DisableInput(MPPlayerController);
+		//DisableInput(MPPlayerController);
 		MPPlayerController->SetElimText(AttackerName);
 	}
 

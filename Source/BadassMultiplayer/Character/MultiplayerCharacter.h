@@ -75,6 +75,8 @@ protected:
 	// Poll for creation of classes and initalize them
 	void PollInit();
 
+	void RotateInPlace(float DeltaTime);
+
 
 private:
 
@@ -214,6 +216,8 @@ public:
 	FORCEINLINE bool ShouldRotateRootBone() const { return bRotateRootBone; }
 	// FORCEINLINE float GetHealth() const { return Health; }
 	FORCEINLINE float GetMaxHealth() const { return Health; }
+	FORCEINLINE UCombatComponent* GetCombatComponent() const { return Combat; }
+	FORCEINLINE bool GetDisableGameplay() const { return bDisableGameplay; }
 	
 
 public:
@@ -236,4 +240,7 @@ public:
 	bool GetIsEliminated() const { return bIsEliminated; }
 
 	ECombatState GetCombatState() const;
+
+	UPROPERTY(Replicated)
+	bool bDisableGameplay = false;
 };

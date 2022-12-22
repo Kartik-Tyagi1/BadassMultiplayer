@@ -32,6 +32,9 @@ public:
 	/* Registers which variables are to be replicated across the game instances */
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
+	// Called from MultiplayerCharacter.cpp 
+	void FireButtonPressed(bool bFireIsPressed);
+
 protected:
 	virtual void BeginPlay() override;
 	void SetIsAiming(bool bAiming);
@@ -42,8 +45,7 @@ protected:
 	UFUNCTION()
 	void OnRep_EquippedWeapon();
 
-	// Called from MultiplayerCharacter.cpp 
-	void FireButtonPressed(bool bFireIsPressed);
+
 
 	// This excutes the weapon fire on the server
 	UFUNCTION(Server, Reliable)
@@ -154,5 +156,7 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void FinishReload();
+
+
 		
 };

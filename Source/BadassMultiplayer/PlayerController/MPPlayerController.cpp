@@ -8,6 +8,7 @@
 #include "Net/UnrealNetwork.h"
 #include "BadassMultiplayer/GameModes/BamGameMode.h"
 #include "Kismet/GameplayStatics.h"
+#include "BadassMultiplayer/MultiplayerComponents/CombatComponent.h"
 
 
 void AMPPlayerController::BeginPlay()
@@ -376,6 +377,13 @@ void AMPPlayerController::HandleCooldown()
 			BadassHUD->Announcement->AnnouncemetText->SetText(FText::FromString(AnnouncementString));
 			BadassHUD->Announcement->InfoText->SetText(FText());
 		}
+	}
+
+	AMultiplayerCharacter* MC = Cast<AMultiplayerCharacter>(GetPawn());
+	if (MC && MC->GetCombatComponent())
+	{
+		MC->bDisableGameplay = true;
+		MC->GetCombatComponent()->FireButtonPressed(false);
 	}
 }
 
