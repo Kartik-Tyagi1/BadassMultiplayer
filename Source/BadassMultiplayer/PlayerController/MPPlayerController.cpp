@@ -212,6 +212,12 @@ void AMPPlayerController::SetHUDMatchTimer(float CountdownTime)
 
 	if (bIsHUDValid)
 	{
+		if (CountdownTime < 0.f)
+		{
+			BadassHUD->CharacterOverlay->MatchTimerText->SetText(FText());
+			return;
+		}
+
 		int32 Minutes = FMath::FloorToInt(CountdownTime / 60.f);
 		int32 Seconds = CountdownTime - Minutes * 60;
 
@@ -229,6 +235,12 @@ void AMPPlayerController::SetHUDAnnouncementCountdown(float CountdownTime)
 
 	if (bIsHUDValid)
 	{
+		if (CountdownTime < 0.f)
+		{
+			BadassHUD->Announcement->WarmupTime->SetText(FText());
+			return;
+		}
+
 		int32 Minutes = FMath::FloorToInt(CountdownTime / 60.f);
 		int32 Seconds = CountdownTime - Minutes * 60;
 
@@ -249,20 +261,27 @@ void AMPPlayerController::OnPossess(APawn* InPawn)
 
 void AMPPlayerController::SetHUDTime()
 {
-
 	float TimeLeft = 0.f;
 	if (MatchState == MatchState::WaitingToStart) TimeLeft = WarmupTime - GetServerTime() + LevelStartingTime;
 	else if (MatchState == MatchState::InProgress) TimeLeft = WarmupTime + MatchTime - GetServerTime() + LevelStartingTime;
-
-
+	else if (MatchState == MatchState::Cooldown) TimeLeft = CooldownTime + WarmupTime + MatchTime - GetServerTime() + LevelStartingTime;
 
 	uint32 SecondsLeft = FMath::CeilToInt(TimeLeft);
+
+	if (HasAuthority())
+	{
+		BamGameMode = BamGameMode == nullptr ? Cast<ABamGameMode>(UGameplayStatics::GetGameMode(this)) : BamGameMode;
+		if (BamGameMode)
+		{
+			SecondsLeft = FMath::CeilToInt(BamGameMode->GetCountdownTime() + LevelStartingTime);
+		}
+	}
 
 	// This function will be called each frame but we only want HUD updated each second so we make a check to see how much time has passed
 	//   Once the seconds left is equal to the countdown then we can updated
 	if (CountdownInt != SecondsLeft)
 	{
-		if (MatchState == MatchState::WaitingToStart)
+		if (MatchState == MatchState::WaitingToStart || MatchState == MatchState::Cooldown)
 		{
 			SetHUDAnnouncementCountdown(TimeLeft);
 		}
@@ -274,7 +293,6 @@ void AMPPlayerController::SetHUDTime()
 	
 	CountdownInt = SecondsLeft;
 }
-
 
 void AMPPlayerController::ServerRequestServerTime_Implementation(float TimeOfClientRequest)
 {
@@ -301,7 +319,6 @@ float AMPPlayerController::GetServerTime()
 		return GetWorld()->GetTimeSeconds() + ClientServerDelta;
 	}
 }
-
 
 void AMPPlayerController::OnMatchStateSet(FName State)
 {
@@ -349,32 +366,40 @@ void AMPPlayerController::HandleCooldown()
 	if (BadassHUD)
 	{
 		BadassHUD->CharacterOverlay->RemoveFromParent();
-		if (BadassHUD->Announcement)
+		bool bIsHUDValid = BadassHUD->Announcement && 
+			BadassHUD->Announcement->AnnouncemetText && BadassHUD->Announcement->InfoText;
+
+		if (bIsHUDValid)
 		{
 			BadassHUD->Announcement->SetVisibility(ESlateVisibility::Visible);
+			FString AnnouncementString = FString::Printf(TEXT("Match Ended. New Match Starts In:"));
+			BadassHUD->Announcement->AnnouncemetText->SetText(FText::FromString(AnnouncementString));
+			BadassHUD->Announcement->InfoText->SetText(FText());
 		}
 	}
 }
 
 void AMPPlayerController::ServerCheckMatchState_Implementation()
 {
-	ABamGameMode* BamGameMode = Cast<ABamGameMode>(UGameplayStatics::GetGameMode(this));
-	if (BamGameMode)
+	ABamGameMode* GameMode = Cast<ABamGameMode>(UGameplayStatics::GetGameMode(this));
+	if (GameMode)
 	{
-		WarmupTime = BamGameMode->WarmupTime;
-		MatchTime = BamGameMode->MatchTime;
-		LevelStartingTime = BamGameMode->LevelStartingTime;
-		MatchState = BamGameMode->GetMatchState();
-		ClientJoinMidGame(MatchState, MatchTime, WarmupTime, LevelStartingTime);
+		WarmupTime = GameMode->WarmupTime;
+		MatchTime = GameMode->MatchTime;
+		LevelStartingTime = GameMode->LevelStartingTime;
+		MatchState = GameMode->GetMatchState();
+		CooldownTime = GameMode->CooldownTime;
+		ClientJoinMidGame(MatchState, MatchTime, WarmupTime, LevelStartingTime, CooldownTime);
 	}
 }
 
-void AMPPlayerController::ClientJoinMidGame_Implementation(FName StateOfMatch, float Match, float Warmup, float StartingTime)
+void AMPPlayerController::ClientJoinMidGame_Implementation(FName StateOfMatch, float Match, float Warmup, float StartingTime, float Cooldown)
 {
 	WarmupTime = Warmup;
 	MatchTime = Match;
 	LevelStartingTime = StartingTime;
 	MatchState = StateOfMatch;
+	CooldownTime = Cooldown;
 	OnMatchStateSet(MatchState);
 
 	if (BadassHUD && MatchState == MatchState::WaitingToStart)
