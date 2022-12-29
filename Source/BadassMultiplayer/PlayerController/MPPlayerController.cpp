@@ -355,7 +355,7 @@ void AMPPlayerController::HandleMatchHasStarted()
 	BadassHUD = BadassHUD == nullptr ? Cast<ABadassHUD>(GetHUD()) : BadassHUD;
 	if (BadassHUD)
 	{
-		BadassHUD->AddCharacterOverlay();
+		if(BadassHUD->CharacterOverlay == nullptr) BadassHUD->AddCharacterOverlay();
 		if (BadassHUD->Announcement)
 		{
 			BadassHUD->Announcement->SetVisibility(ESlateVisibility::Hidden);

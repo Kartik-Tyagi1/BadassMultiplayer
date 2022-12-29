@@ -623,7 +623,6 @@ void AMultiplayerCharacter::PollInit()
 	}
 }
 
-
 void AMultiplayerCharacter::Eliminated(APlayerController* AttackerController)
 {
 	FString AttackerName = FString();
