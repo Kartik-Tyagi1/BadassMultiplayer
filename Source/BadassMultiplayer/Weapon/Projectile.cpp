@@ -45,7 +45,7 @@ void AProjectile::BeginPlay()
 	if (HasAuthority())
 	{
 		// Only server should handle hit events like damage etc.
-		CollisionBox->OnComponentHit.AddDynamic(this, &ThisClass::OnHit);
+		CollisionBox->OnComponentHit.AddDynamic(this, &AProjectile::OnHit);
 	}
 	
 }

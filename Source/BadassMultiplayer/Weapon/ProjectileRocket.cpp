@@ -1,6 +1,11 @@
 #include "ProjectileRocket.h"
 #include "Kismet/GameplayStatics.h"
-
+#include "NiagaraFunctionLibrary.h"
+#include "Components/BoxComponent.h"
+#include "Kismet/GameplayStatics.h"
+#include "Sound/SoundCue.h"
+#include "NiagaraComponent.h"
+#include "Components/AudioComponent.h"
 
 AProjectileRocket::AProjectileRocket()
 {
@@ -9,11 +14,54 @@ AProjectileRocket::AProjectileRocket()
 	RocketMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
+void AProjectileRocket::BeginPlay()
+{
+	Super::BeginPlay();
+
+
+	if (!HasAuthority())
+	{
+		// Server is bound in Projectile.h now we can bind client hit events here too
+		CollisionBox->OnComponentHit.AddDynamic(this, &AProjectileRocket::OnHit);
+	}
+
+	if (RocketTrailSystem)
+	{
+		RocketTrailSystemComponent = UNiagaraFunctionLibrary::SpawnSystemAttached(
+			RocketTrailSystem, 
+			GetRootComponent(), 
+			FName(), 
+			GetActorLocation(), 
+			GetActorRotation(),
+			EAttachLocation::KeepWorldPosition, 
+			false);
+	}
+
+	if (RocketLoopSound && RocketLoopSoundAttenuation)
+	{
+		RocketLoopComponent = UGameplayStatics::SpawnSoundAttached(
+			RocketLoopSound,
+			GetRootComponent(),
+			FName(),
+			GetActorLocation(),
+			EAttachLocation::KeepWorldPosition,
+			false,
+			1.f,
+			1.f,
+			0.f,
+			RocketLoopSoundAttenuation,
+			(USoundConcurrency*)nullptr,
+			false
+		);
+	}
+
+}
+
 void AProjectileRocket::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
 	// Get the Pawn who fired the rocket (owner is set in ProjectileWeapon.h Fire() function)
 	APawn* FiringPawn = GetInstigator();
-	if (FiringPawn)
+	if (FiringPawn && HasAuthority())
 	{
 		AController* FiringController = FiringPawn->GetController();
 		if (FiringController)
@@ -33,5 +81,47 @@ void AProjectileRocket::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, 
 				);
 		}
 	}
-	Super::OnHit(HitComp, OtherActor, OtherComp, NormalImpulse, Hit);
+
+	GetWorldTimerManager().SetTimer(DestroyTimer, this, &AProjectileRocket::DestroyTimerFinished, DestroyTime);
+
+	if (ImpactParticles)
+	{
+		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactParticles, GetActorTransform());
+	}
+
+	if (ImpactSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, ImpactSound, GetActorLocation());
+	}
+
+	if (RocketMesh)
+	{
+		RocketMesh->SetVisibility(false);
+	}
+	if (CollisionBox)
+	{
+		CollisionBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	}
+	if (RocketTrailSystemComponent && RocketTrailSystemComponent->GetSystemInstanceController())
+	{
+		RocketTrailSystemComponent->GetSystemInstanceController()->Deactivate();
+	}
+	if (RocketLoopComponent && RocketLoopComponent->IsPlaying())
+	{
+		RocketLoopComponent->Stop();
+	}
+
+	
+	// Super::OnHit(HitComp, OtherActor, OtherComp, NormalImpulse, Hit);
+}
+
+void AProjectileRocket::DestroyTimerFinished()
+{
+	Destroy();
+}
+
+void AProjectileRocket::Destroyed()
+{
+	// The point of overriding all these functions is to prevent the smoke trail from disappearing right when the rocket is destroyed
+	// If we delay the destruction of the rocket then the niagara system can dissapate naturally
 }
