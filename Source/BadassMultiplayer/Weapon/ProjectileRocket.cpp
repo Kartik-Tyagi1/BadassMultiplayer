@@ -6,12 +6,17 @@
 #include "Sound/SoundCue.h"
 #include "NiagaraComponent.h"
 #include "Components/AudioComponent.h"
+#include "RocketMovementComponent.h"
 
 AProjectileRocket::AProjectileRocket()
 {
 	RocketMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("RocketMesh"));
 	RocketMesh->SetupAttachment(RootComponent);
 	RocketMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	RocketMovementComp = CreateDefaultSubobject<URocketMovementComponent>(TEXT("ProjectileMovementComponent"));
+	RocketMovementComp->bRotationFollowsVelocity = true;
+	RocketMovementComp->SetIsReplicated(true);
 }
 
 void AProjectileRocket::BeginPlay()
@@ -59,6 +64,11 @@ void AProjectileRocket::BeginPlay()
 
 void AProjectileRocket::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
+	if (OtherActor == GetOwner())
+	{
+		return; // Don't continue if the rocket was fired and the character ran into it
+	}
+
 	// Get the Pawn who fired the rocket (owner is set in ProjectileWeapon.h Fire() function)
 	APawn* FiringPawn = GetInstigator();
 	if (FiringPawn && HasAuthority())

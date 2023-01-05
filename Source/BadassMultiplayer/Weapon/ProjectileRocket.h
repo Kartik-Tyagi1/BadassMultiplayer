@@ -6,6 +6,7 @@
 
 class UNiagaraSystem;
 class UNiagaraComponent;
+class URocketMovementComponent;
 
 UCLASS()
 class BADASSMULTIPLAYER_API AProjectileRocket : public AProjectile
@@ -42,6 +43,9 @@ protected:
 private:
 	UPROPERTY(EditAnywhere)
 	UStaticMeshComponent* RocketMesh;
+
+	UPROPERTY(VisibleAnywhere)
+	URocketMovementComponent* RocketMovementComp;
 
 	UPROPERTY(EditAnywhere, Category = Damage)
 	float MinimumDamageAmount = 10.f;

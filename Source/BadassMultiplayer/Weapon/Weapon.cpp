@@ -19,6 +19,7 @@ AWeapon::AWeapon():
 
 	// Weapon is replicated across all intances of the game
 	bReplicates = true;
+	SetReplicateMovement(true);
 
 	WeaponMesh = CreateDefaultSubobject<USkeletalMeshComponent>("WeaponMesh");
 	SetRootComponent(WeaponMesh);

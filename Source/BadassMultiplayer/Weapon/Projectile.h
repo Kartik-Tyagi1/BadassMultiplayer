@@ -38,10 +38,10 @@ protected:
 	UPROPERTY(EditAnywhere)
 	USoundCue* ImpactSound;
 
-private:
 	UPROPERTY(VisibleAnywhere)
 	UProjectileMovementComponent* ProjectileMovementComp;
 
+private:
 	UPROPERTY(EditAnywhere)
 	UParticleSystem* ProjectileTracer;
 
