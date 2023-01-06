@@ -152,6 +152,9 @@ private:
 	UPROPERTY(EditAnywhere, Category = Ammo)
 	int32 StartingRocketLauncherAmmo = 0;
 
+	UPROPERTY(EditAnywhere, Category = Ammo)
+	int32 StartingPistolAmmo = 10;
+
 	void UpdateAmmoValues();
 
 public:	
