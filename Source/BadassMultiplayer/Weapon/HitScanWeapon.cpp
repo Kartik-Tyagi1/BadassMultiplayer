@@ -2,6 +2,7 @@
 #include "Engine/SkeletalMeshSocket.h"
 #include "BadassMultiplayer/Character/MultiplayerCharacter.h"
 #include "Kismet/GameplayStatics.h"
+#include "particles/ParticleSystemComponent.h"
 
 void AHitScanWeapon::FireWeapon(const FVector& HitTarget)
 {
@@ -12,7 +13,6 @@ void AHitScanWeapon::FireWeapon(const FVector& HitTarget)
 	if (PawnInstigator == nullptr) return;
 
 	AController* PawnController = PawnInstigator->GetController();
-	if (PawnController == nullptr) return;
 
 	const USkeletalMeshSocket* MuzzleFlashSocket = GetWeaponMesh()->GetSocketByName(FName("MuzzleFlash"));
 	if (MuzzleFlashSocket)
@@ -21,24 +21,25 @@ void AHitScanWeapon::FireWeapon(const FVector& HitTarget)
 		FVector Start = MuzzleFlashSocketTransform.GetLocation();
 		FVector End = Start + (HitTarget - Start) * 1.25;
 
-		FHitResult HitResult;
-		GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECollisionChannel::ECC_Visibility);
+		FHitResult FireHitResult;
+		GetWorld()->LineTraceSingleByChannel(FireHitResult, Start, End, ECollisionChannel::ECC_Visibility);
 
-		if (HitResult.bBlockingHit)
+		FVector SmokeBeamEnd = End;
+
+		if (FireHitResult.bBlockingHit)
 		{
-			AMultiplayerCharacter* HitCharacter = Cast< AMultiplayerCharacter>(HitResult.GetActor());
-			if (HitCharacter)
+			SmokeBeamEnd = FireHitResult.ImpactPoint;
+
+			AMultiplayerCharacter* HitCharacter = Cast< AMultiplayerCharacter>(FireHitResult.GetActor());
+			if (HitCharacter && HasAuthority() && PawnController)
 			{
-				if (HasAuthority())
-				{
-					UGameplayStatics::ApplyDamage(
-						HitCharacter,
-						DamageAmount,
-						PawnController,
-						this,
-						UDamageType::StaticClass()
-					);
-				}
+				UGameplayStatics::ApplyDamage(
+					HitCharacter,
+					DamageAmount,
+					PawnController,
+					this,
+					UDamageType::StaticClass()
+				);
 			}
 
 			if (ImpactParticles)
@@ -46,9 +47,23 @@ void AHitScanWeapon::FireWeapon(const FVector& HitTarget)
 				UGameplayStatics::SpawnEmitterAtLocation(
 					GetWorld(),
 					ImpactParticles,
-					HitResult.ImpactPoint,
-					HitResult.ImpactNormal.Rotation()
+					FireHitResult.ImpactPoint,
+					FireHitResult.ImpactNormal.Rotation()
 				);
+			}
+
+			if (SmokeBeamParticles)
+			{
+				UParticleSystemComponent* SmokeBeamParticleComponent = UGameplayStatics::SpawnEmitterAtLocation(
+					GetWorld(),
+					SmokeBeamParticles,
+					MuzzleFlashSocketTransform
+				);
+
+				if (SmokeBeamParticleComponent)
+				{
+					SmokeBeamParticleComponent->SetVectorParameter(FName("Target"), SmokeBeamEnd);
+				}
 			}
 		}
 	}
