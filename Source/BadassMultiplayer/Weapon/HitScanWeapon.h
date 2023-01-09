@@ -5,6 +5,7 @@
 #include "HitScanWeapon.generated.h"
 
 class UParticleSystem;
+class USoundCue;
 
 UCLASS()
 class BADASSMULTIPLAYER_API AHitScanWeapon : public AWeapon
@@ -23,4 +24,13 @@ private:
 
 	UPROPERTY(EditAnywhere)
 	UParticleSystem* SmokeBeamParticles;
+
+	UPROPERTY(EditAnywhere)
+	UParticleSystem* MuzzleFlashParticles;
+
+	UPROPERTY(EditAnywhere)
+	USoundCue* FireSound;
+
+	UPROPERTY(EditAnywhere)
+	USoundCue* HitSound;
 };

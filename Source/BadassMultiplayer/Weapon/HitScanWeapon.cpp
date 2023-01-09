@@ -3,6 +3,7 @@
 #include "BadassMultiplayer/Character/MultiplayerCharacter.h"
 #include "Kismet/GameplayStatics.h"
 #include "particles/ParticleSystemComponent.h"
+#include "Sound/SoundCue.h"
 
 void AHitScanWeapon::FireWeapon(const FVector& HitTarget)
 {
@@ -65,6 +66,23 @@ void AHitScanWeapon::FireWeapon(const FVector& HitTarget)
 					SmokeBeamParticleComponent->SetVectorParameter(FName("Target"), SmokeBeamEnd);
 				}
 			}
+
+
+			if (HitSound)
+			{
+				UGameplayStatics::PlaySoundAtLocation(this, HitSound, FireHitResult.ImpactPoint);
+			}
 		}
+
+		if (MuzzleFlashParticles)
+		{
+			UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), MuzzleFlashParticles, MuzzleFlashSocketTransform);
+		}
+
+		if (FireSound)
+		{
+			UGameplayStatics::PlaySoundAtLocation(this, FireSound, GetActorLocation());
+		}
+
 	}
 }
