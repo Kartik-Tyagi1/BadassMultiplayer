@@ -534,6 +534,9 @@ void AMultiplayerCharacter::PlayReloadMontage()
 		case EWeaponType::EWT_SMG:
 			ReloadSectionName = FName("ReloadRifle");
 			break;
+		case EWeaponType::EWT_Shotgun:
+			ReloadSectionName = FName("ReloadRifle");
+			break;
 		}
 
 		AnimInstance->Montage_JumpToSection(ReloadSectionName);

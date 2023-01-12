@@ -9,7 +9,6 @@
 #include "BadassMultiplayer/Types/CombatState.h"
 #include "CombatComponent.generated.h"
 
-#define TRACE_LENGTH 80000.f
 
 class AWeapon;
 class AMultiplayerCharacter;
@@ -157,6 +156,9 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = Ammo)
 	int32 StartingSMGAmmo = 40;
+
+	UPROPERTY(EditAnywhere, Category = Ammo)
+	int32 StartingShotgunAmmo = 5;
 
 	void UpdateAmmoValues();
 
