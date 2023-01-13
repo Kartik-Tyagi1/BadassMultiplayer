@@ -23,58 +23,35 @@ void AHitScanWeapon::FireWeapon(const FVector& HitTarget)
 	{
 		const FTransform MuzzleFlashSocketTransform = MuzzleFlashSocket->GetSocketTransform(GetWeaponMesh());
 		FVector Start = MuzzleFlashSocketTransform.GetLocation();
-		FVector End = Start + (HitTarget - Start) * 1.25;
 
 		FHitResult FireHitResult;
-		GetWorld()->LineTraceSingleByChannel(FireHitResult, Start, End, ECollisionChannel::ECC_Visibility);
+		WeaponTraceHit(Start, HitTarget, FireHitResult);
 
-		FVector SmokeBeamEnd = End;
-
-		if (FireHitResult.bBlockingHit)
+		AMultiplayerCharacter* HitCharacter = Cast< AMultiplayerCharacter>(FireHitResult.GetActor());
+		if (HitCharacter && HasAuthority() && PawnController)
 		{
-			SmokeBeamEnd = FireHitResult.ImpactPoint;
+			UGameplayStatics::ApplyDamage(
+				HitCharacter,
+				DamageAmount,
+				PawnController,
+				this,
+				UDamageType::StaticClass()
+			);
+		}
 
-			AMultiplayerCharacter* HitCharacter = Cast< AMultiplayerCharacter>(FireHitResult.GetActor());
-			if (HitCharacter && HasAuthority() && PawnController)
-			{
-				UGameplayStatics::ApplyDamage(
-					HitCharacter,
-					DamageAmount,
-					PawnController,
-					this,
-					UDamageType::StaticClass()
-				);
-			}
+		if (ImpactParticles)
+		{
+			UGameplayStatics::SpawnEmitterAtLocation(
+				GetWorld(),
+				ImpactParticles,
+				FireHitResult.ImpactPoint,
+				FireHitResult.ImpactNormal.Rotation()
+			);
+		}
 
-			if (ImpactParticles)
-			{
-				UGameplayStatics::SpawnEmitterAtLocation(
-					GetWorld(),
-					ImpactParticles,
-					FireHitResult.ImpactPoint,
-					FireHitResult.ImpactNormal.Rotation()
-				);
-			}
-
-			if (SmokeBeamParticles)
-			{
-				UParticleSystemComponent* SmokeBeamParticleComponent = UGameplayStatics::SpawnEmitterAtLocation(
-					GetWorld(),
-					SmokeBeamParticles,
-					MuzzleFlashSocketTransform
-				);
-
-				if (SmokeBeamParticleComponent)
-				{
-					SmokeBeamParticleComponent->SetVectorParameter(FName("Target"), SmokeBeamEnd);
-				}
-			}
-
-
-			if (HitSound)
-			{
-				UGameplayStatics::PlaySoundAtLocation(this, HitSound, FireHitResult.ImpactPoint);
-			}
+		if (HitSound)
+		{
+			UGameplayStatics::PlaySoundAtLocation(this, HitSound, FireHitResult.ImpactPoint);
 		}
 
 		if (MuzzleFlashParticles)
@@ -90,6 +67,35 @@ void AHitScanWeapon::FireWeapon(const FVector& HitTarget)
 	}
 }
 
+void AHitScanWeapon::WeaponTraceHit(const FVector& TraceStart, const FVector& HitTarget, FHitResult& OutHitResult)
+{
+	FVector TraceEnd = bUseScatter ? TraceEndWithScatter(TraceStart, HitTarget) : TraceStart + (HitTarget - TraceStart) * 1.25;
+	GetWorld()->LineTraceSingleByChannel(OutHitResult, TraceStart, TraceEnd, ECollisionChannel::ECC_Visibility);
+
+	FVector SmokeBeamEnd = TraceEnd;
+	if (OutHitResult.bBlockingHit)
+	{
+		SmokeBeamEnd = OutHitResult.ImpactPoint;
+	}
+
+	if (SmokeBeamParticles)
+	{
+		UParticleSystemComponent* SmokeBeamParticleComponent = UGameplayStatics::SpawnEmitterAtLocation(
+			GetWorld(),
+			SmokeBeamParticles,
+			TraceStart,
+			FRotator::ZeroRotator,
+			true
+		);
+
+		if (SmokeBeamParticleComponent)
+		{
+			SmokeBeamParticleComponent->SetVectorParameter(FName("Target"), SmokeBeamEnd);
+		}
+	}
+
+}
+
 FVector AHitScanWeapon::TraceEndWithScatter(const FVector& TraceStart, const FVector& HitTarget)
 {
 	FVector DirectionToTargetNormalized = (HitTarget - TraceStart).GetSafeNormal();
@@ -98,13 +104,15 @@ FVector AHitScanWeapon::TraceEndWithScatter(const FVector& TraceStart, const FVe
 	FVector EndLocation = SphereCenter + Rand;
 	FVector DirectionToEndLocation = EndLocation - TraceStart;
 
-	DrawDebugSphere(GetWorld(), SphereCenter, SphereRadius, 12, FColor::Red, true);
+	/*DrawDebugSphere(GetWorld(), SphereCenter, SphereRadius, 12, FColor::Red, true);
 	DrawDebugSphere(GetWorld(), EndLocation, 4.f, 12, FColor::Green, true);
 	DrawDebugLine(GetWorld(),
 		TraceStart, 
 		TraceStart + DirectionToEndLocation * TRACE_LENGTH / DirectionToEndLocation.Size(),
 		FColor::Orange,
-		true);
+		true);*/
 
 	return FVector(TraceStart + DirectionToEndLocation * TRACE_LENGTH / DirectionToEndLocation.Size());
 }
+
+

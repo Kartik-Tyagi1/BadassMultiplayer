@@ -20,10 +20,60 @@ void AShotgun::FireWeapon(const FVector& HitTarget)
 	{
 		const FTransform MuzzleFlashSocketTransform = MuzzleFlashSocket->GetSocketTransform(GetWeaponMesh());
 		FVector Start = MuzzleFlashSocketTransform.GetLocation();
+
+		TMap<AMultiplayerCharacter*, uint32> HitMap; // Used to check if pellets spread enough to hit mulitple characters
+
 		for (uint32 i = 0; i < NumOfPellets; i++)
 		{
-			FVector End = TraceEndWithScatter(Start, HitTarget);
+			FHitResult FireHitResult;
+			WeaponTraceHit(Start, HitTarget, FireHitResult);
 
+			AMultiplayerCharacter* HitCharacter = Cast< AMultiplayerCharacter>(FireHitResult.GetActor());
+			if (HitCharacter && HasAuthority() && PawnController)
+			{
+				if (HitMap.Contains(HitCharacter))
+				{
+					HitMap[HitCharacter]++;
+				}
+				else
+				{
+					HitMap.Emplace(HitCharacter, 1);
+				}
+			}
+
+			if (ImpactParticles)
+			{
+				UGameplayStatics::SpawnEmitterAtLocation(
+					GetWorld(),
+					ImpactParticles,
+					FireHitResult.ImpactPoint,
+					FireHitResult.ImpactNormal.Rotation()
+				);
+			}
+
+			if (HitSound)
+			{
+				UGameplayStatics::PlaySoundAtLocation(
+					this,
+					HitSound,
+					FireHitResult.ImpactPoint,
+					0.5f,
+					FMath::FRandRange(-0.5f, 0.5f));
+			}
+		}
+
+		for (auto HitPair : HitMap)
+		{
+			if (HitPair.Key && HasAuthority() && PawnController)
+			{
+				UGameplayStatics::ApplyDamage(
+					HitPair.Key,
+					DamageAmount * HitPair.Value,
+					PawnController,
+					this,
+					UDamageType::StaticClass()
+				);
+			}
 		}
 	}
 }

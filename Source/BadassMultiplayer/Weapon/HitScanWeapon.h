@@ -17,14 +17,19 @@ public:
 
 protected:
 	FVector TraceEndWithScatter(const FVector& TraceStart, const FVector& HitTarget);
+	void WeaponTraceHit(const FVector& TraceStart, const FVector& HitTarget, FHitResult& OutHitResult);
 
-private:
-	UPROPERTY(EditAnywhere)
-	float DamageAmount = 20.f;
-
+protected:
 	UPROPERTY(EditAnywhere)
 	UParticleSystem* ImpactParticles;
 
+	UPROPERTY(EditAnywhere)
+	USoundCue* HitSound;
+
+	UPROPERTY(EditAnywhere)
+	float DamageAmount = 20.f;
+
+private:
 	UPROPERTY(EditAnywhere)
 	UParticleSystem* SmokeBeamParticles;
 
@@ -33,9 +38,6 @@ private:
 
 	UPROPERTY(EditAnywhere)
 	USoundCue* FireSound;
-
-	UPROPERTY(EditAnywhere)
-	USoundCue* HitSound;
 
 	/* 
 	* Trace End With Scatter 
