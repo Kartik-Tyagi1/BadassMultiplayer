@@ -495,6 +495,7 @@ void AMultiplayerCharacter::RotateInPlace(float DeltaTime)
 	}
 }
 
+
 void AMultiplayerCharacter::PlayFireMontage(bool bIsAiming)
 {
 	// Dont play any animation if the character doesn't have a weapon
@@ -718,6 +719,16 @@ void AMultiplayerCharacter::MulticastEliminated_Implementation(const FString& At
 	{
 		MPPlayerController->SetHUDWeaponAmmo(0);
 		MPPlayerController->SetHUDWeaponType(EWeaponType::EWT_MAX);
+	}
+
+	bool bHideSniperScope = IsLocallyControlled() && 
+		GetIsAiming() && 
+		Combat && 
+		Combat->EquippedWeapon->GetWeaponType() == EWeaponType::EWT_SniperRifle;
+
+	if (bHideSniperScope)
+	{
+		ShowSniperScopeWidget(false);
 	}
 }
 

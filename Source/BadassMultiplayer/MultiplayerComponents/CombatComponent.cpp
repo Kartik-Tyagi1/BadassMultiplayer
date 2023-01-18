@@ -312,6 +312,8 @@ void UCombatComponent::UpdateAmmoValues()
 
 void UCombatComponent::SetIsAiming(bool bAiming)
 {
+	if (Character == nullptr || EquippedWeapon == nullptr) return;
+
 	bIsAiming = bAiming;
 
 	// When we call an RPC on a client machine then it gets excecuted on the server and on the client machine when the UPROPERTY has the Server argument
@@ -320,6 +322,11 @@ void UCombatComponent::SetIsAiming(bool bAiming)
 	if (Character)
 	{
 		Character->GetCharacterMovement()->MaxWalkSpeed = bAiming ? AimWalkSpeed : BaseWalkSpeed;
+	}
+
+	if (Character->IsLocallyControlled() && EquippedWeapon->GetWeaponType() == EWeaponType::EWT_SniperRifle)
+	{
+		Character->ShowSniperScopeWidget(bAiming);
 	}
 }
 
