@@ -527,19 +527,22 @@ void AMultiplayerCharacter::PlayReloadMontage()
 			ReloadSectionName = FName("ReloadRifle");
 			break;
 		case EWeaponType::EWT_RocketLauncher:
-			ReloadSectionName = FName("ReloadRifle");
+			ReloadSectionName = FName("ReloadRocket");
 			break;
 		case EWeaponType::EWT_Pistol:
-			ReloadSectionName = FName("ReloadRifle");
+			ReloadSectionName = FName("ReloadPistol");
 			break;
 		case EWeaponType::EWT_SMG:
-			ReloadSectionName = FName("ReloadRifle");
+			ReloadSectionName = FName("ReloadPistol");
 			break;
 		case EWeaponType::EWT_Shotgun:
-			ReloadSectionName = FName("ReloadRifle");
+			ReloadSectionName = FName("ReloadShotgun");
 			break;
 		case EWeaponType::EWT_SniperRifle:
-			ReloadSectionName = FName("ReloadRifle");
+			ReloadSectionName = FName("ReloadSniper");
+			break;
+		case EWeaponType::EWT_GrenadeLauncher:
+			ReloadSectionName = FName("ReloadGrenadeLauncher");
 			break;
 		}
 

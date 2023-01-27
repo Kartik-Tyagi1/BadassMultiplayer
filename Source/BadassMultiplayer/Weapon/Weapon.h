@@ -69,55 +69,55 @@ protected:
 		int32 OtherBodyIndex);
 
 private:
-	UPROPERTY(VisibleAnywhere, Category = "WeaponProperties")
-		USkeletalMeshComponent* WeaponMesh;
+	UPROPERTY(VisibleAnywhere, Category = "Weapon Properties")
+	USkeletalMeshComponent* WeaponMesh;
 
-	UPROPERTY(VisibleAnywhere, Category = "WeaponProperties")
-		USphereComponent* AreaSphere;
+	UPROPERTY(VisibleAnywhere, Category = "Weapon Properties")
+	USphereComponent* AreaSphere;
 
-	UPROPERTY(VisibleAnywhere, Category = "WeaponProperties")
-		UWidgetComponent* PickupWidget;
+	UPROPERTY(VisibleAnywhere, Category = "Weapon Properties")
+	UWidgetComponent* PickupWidget;
 
-	UPROPERTY(ReplicatedUsing = OnRep_WeaponState, VisibleAnywhere, Category = "WeaponProperties")
-		EWeaponState WeaponState;
+	UPROPERTY(ReplicatedUsing = OnRep_WeaponState, VisibleAnywhere, Category = "Weapon Properties")
+	EWeaponState WeaponState;
 
 	UFUNCTION()
-		void OnRep_WeaponState();
+	void OnRep_WeaponState();
 
-	UPROPERTY(EditAnywhere, Category = "WeaponProperties")
-		UAnimationAsset* FireWeaponAnim;
+	UPROPERTY(EditAnywhere, Category = "Weapon Properties")
+	UAnimationAsset* FireWeaponAnim;
 
-	UPROPERTY(EditAnywhere)
-		TSubclassOf<ABulletShell> BulletShellClass;
+	UPROPERTY(EditAnywhere, Category = "Weapon Properties")
+	TSubclassOf<ABulletShell> BulletShellClass;
 
 	/* Aiming Zoom Parameters */
-	UPROPERTY(EditAnywhere, Category = Aiming)
-		float ZoomFOV = 30.f;
+	UPROPERTY(EditAnywhere, Category = "Weapon Properties")
+	float ZoomFOV = 30.f;
 
-	UPROPERTY(EditAnywhere, Category = Aiming)
-		float ZoomInterpSpeed = 20.f;
+	UPROPERTY(EditAnywhere, Category = "Weapon Properties")
+	float ZoomInterpSpeed = 20.f;
 
 	// Amount of ammo in the mag
-	UPROPERTY(ReplicatedUsing = OnRep_Ammo, EditAnywhere, Category = Ammo)
-		int32 Ammo;
+	UPROPERTY(ReplicatedUsing = OnRep_Ammo, EditAnywhere, Category = "Weapon Properties")
+	int32 Ammo;
 
 	UFUNCTION()
-		void OnRep_Ammo();
+	void OnRep_Ammo();
 
 	// Decrements ammo when firing weapon
 	void SpendRound();
 
-	UPROPERTY(EditAnywhere, Category = Ammo)
-		int32 MagCapacity;
+	UPROPERTY(EditAnywhere, Category = "Weapon Properties")
+	int32 MagCapacity;
 
 	UPROPERTY()
-		AMPPlayerController* OwnerController;
+	AMPPlayerController* OwnerController;
 
 	UPROPERTY()
-		AMultiplayerCharacter* OwnerCharacter;
+	AMultiplayerCharacter* OwnerCharacter;
 
 	UPROPERTY(EditAnywhere, Category = "Weapon Properties")
-		EWeaponType WeaponType;
+	EWeaponType WeaponType;
 
 public:	
 	void SetWeaponState(EWeaponState State);

@@ -175,6 +175,9 @@ void AMPPlayerController::SetHUDWeaponType(EWeaponType WeaponType)
 		case EWeaponType::EWT_SniperRifle:
 			WeaponTypeString = FString("SniperRifle");
 			break;
+		case EWeaponType::EWT_GrenadeLauncher:
+			WeaponTypeString = FString("Grenade Launcher");
+			break;
 		case EWeaponType::EWT_MAX:
 			WeaponTypeString = FString("");
 			break;

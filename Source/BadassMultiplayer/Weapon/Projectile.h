@@ -9,6 +9,8 @@ class UProjectileMovementComponent;
 class UParticleSystem;
 class UParticleSystemComponent;
 class USoundCue;
+class UNiagaraSystem;
+class UNiagaraComponent;
 
 UCLASS()
 class BADASSMULTIPLAYER_API AProjectile : public AActor
@@ -26,9 +28,15 @@ protected:
 	UFUNCTION()
 	virtual void OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
-	UPROPERTY(EditAnywhere)
-	float DamageAmount = 20.f;
+	void SpawnTrailSystem();
 
+	void StartDestroyTimer();
+
+	void DestroyTimerFinished();
+
+	void ApplyExplosionDamage();
+
+protected:
 	UPROPERTY(EditAnywhere)
 	UBoxComponent* CollisionBox;
 
@@ -36,10 +44,37 @@ protected:
 	UParticleSystem* ImpactParticles;
 
 	UPROPERTY(EditAnywhere)
+	UStaticMeshComponent* ProjectileMesh;
+
+	UPROPERTY(EditAnywhere)
 	USoundCue* ImpactSound;
+
+	UPROPERTY(EditAnywhere)
+	UNiagaraSystem* TrailSystem;
+
+	UPROPERTY()
+	UNiagaraComponent* TrailSystemComponent;
 
 	UPROPERTY(VisibleAnywhere)
 	UProjectileMovementComponent* ProjectileMovementComp;
+
+	FTimerHandle DestroyTimer;
+
+	UPROPERTY(EditAnywhere, Category = Niagara)
+	float DestroyTime = 3.f;
+
+	UPROPERTY(EditAnywhere)
+	float DamageAmount = 20.f;
+
+	UPROPERTY(EditAnywhere, Category = Damage)
+	float MinimumDamageAmount = 10.f;
+
+	UPROPERTY(EditAnywhere, Category = Damage)
+	float OuterRadius = 500.f;
+
+	UPROPERTY(EditAnywhere, Category = Damage)
+	float InnerRadius = 200.f;
+
 
 private:
 	UPROPERTY(EditAnywhere)

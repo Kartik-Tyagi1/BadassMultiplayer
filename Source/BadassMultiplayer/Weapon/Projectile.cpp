@@ -1,12 +1,13 @@
 #include "Projectile.h"
 #include "Components/BoxComponent.h"
-
+#include "NiagaraComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Particles/ParticleSystem.h"
 #include "Particles/ParticleSystemComponent.h"
 #include "Sound/SoundCue.h"
 #include "BadassMultiplayer/Character/MultiplayerCharacter.h"
 #include "BadassMultiplayer/BadassMultiplayer.h"
+#include "NiagaraFunctionLibrary.h"
 
 AProjectile::AProjectile()
 {
@@ -77,6 +78,61 @@ void AProjectile::Destroyed()
 	if (ImpactSound)
 	{
 		UGameplayStatics::PlaySoundAtLocation(this, ImpactSound, GetActorLocation());
+	}
+}
+
+void AProjectile::StartDestroyTimer()
+{
+	GetWorldTimerManager().SetTimer(
+		DestroyTimer, 
+		this, &AProjectile::DestroyTimerFinished, 
+		DestroyTime);
+}
+
+void AProjectile::DestroyTimerFinished()
+{
+	Destroy();
+}
+
+
+void AProjectile::SpawnTrailSystem()
+{
+	if (TrailSystem)
+	{
+		TrailSystemComponent = UNiagaraFunctionLibrary::SpawnSystemAttached(
+			TrailSystem,
+			GetRootComponent(),
+			FName(),
+			GetActorLocation(),
+			GetActorRotation(),
+			EAttachLocation::KeepWorldPosition,
+			false);
+	}
+}
+
+void AProjectile::ApplyExplosionDamage()
+{
+	// Get the Pawn who fired the rocket (owner is set in ProjectileWeapon.h Fire() function)
+	APawn* FiringPawn = GetInstigator();
+	if (FiringPawn && HasAuthority())
+	{
+		AController* FiringController = FiringPawn->GetController();
+		if (FiringController)
+		{
+			UGameplayStatics::ApplyRadialDamageWithFalloff(
+				this,
+				DamageAmount,
+				MinimumDamageAmount,
+				GetActorLocation(),
+				InnerRadius,
+				OuterRadius,
+				1.f, // Linear Damage Falloff
+				UDamageType::StaticClass(),
+				TArray<AActor*>(),
+				this,
+				FiringController
+			);
+		}
 	}
 }
 

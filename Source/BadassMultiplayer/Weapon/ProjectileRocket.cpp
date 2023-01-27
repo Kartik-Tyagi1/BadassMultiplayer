@@ -1,6 +1,5 @@
 #include "ProjectileRocket.h"
 #include "Kismet/GameplayStatics.h"
-#include "NiagaraFunctionLibrary.h"
 #include "Components/BoxComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Sound/SoundCue.h"
@@ -10,9 +9,9 @@
 
 AProjectileRocket::AProjectileRocket()
 {
-	RocketMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("RocketMesh"));
-	RocketMesh->SetupAttachment(RootComponent);
-	RocketMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	ProjectileMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("RocketMesh"));
+	ProjectileMesh->SetupAttachment(RootComponent);
+	ProjectileMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 	RocketMovementComp = CreateDefaultSubobject<URocketMovementComponent>(TEXT("ProjectileMovementComponent"));
 	RocketMovementComp->bRotationFollowsVelocity = true;
@@ -30,17 +29,7 @@ void AProjectileRocket::BeginPlay()
 		CollisionBox->OnComponentHit.AddDynamic(this, &AProjectileRocket::OnHit);
 	}
 
-	if (RocketTrailSystem)
-	{
-		RocketTrailSystemComponent = UNiagaraFunctionLibrary::SpawnSystemAttached(
-			RocketTrailSystem, 
-			GetRootComponent(), 
-			FName(), 
-			GetActorLocation(), 
-			GetActorRotation(),
-			EAttachLocation::KeepWorldPosition, 
-			false);
-	}
+	SpawnTrailSystem();
 
 	if (RocketLoopSound && RocketLoopSoundAttenuation)
 	{
@@ -69,28 +58,7 @@ void AProjectileRocket::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, 
 		return; // Don't continue if the rocket was fired and the character ran into it
 	}
 
-	// Get the Pawn who fired the rocket (owner is set in ProjectileWeapon.h Fire() function)
-	APawn* FiringPawn = GetInstigator();
-	if (FiringPawn && HasAuthority())
-	{
-		AController* FiringController = FiringPawn->GetController();
-		if (FiringController)
-		{
-			UGameplayStatics::ApplyRadialDamageWithFalloff(
-				this,
-				DamageAmount,
-				MinimumDamageAmount,
-				GetActorLocation(),
-				InnerRadius,
-				OuterRadius,
-				1.f, // Linear Damage Falloff
-				UDamageType::StaticClass(),
-				TArray<AActor*>(),
-				this,
-				FiringController
-				);
-		}
-	}
+	ApplyExplosionDamage();
 
 	GetWorldTimerManager().SetTimer(DestroyTimer, this, &AProjectileRocket::DestroyTimerFinished, DestroyTime);
 
@@ -104,17 +72,17 @@ void AProjectileRocket::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, 
 		UGameplayStatics::PlaySoundAtLocation(this, ImpactSound, GetActorLocation());
 	}
 
-	if (RocketMesh)
+	if (ProjectileMesh)
 	{
-		RocketMesh->SetVisibility(false);
+		ProjectileMesh->SetVisibility(false);
 	}
 	if (CollisionBox)
 	{
 		CollisionBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	}
-	if (RocketTrailSystemComponent && RocketTrailSystemComponent->GetSystemInstanceController())
+	if (TrailSystemComponent && TrailSystemComponent->GetSystemInstanceController())
 	{
-		RocketTrailSystemComponent->GetSystemInstanceController()->Deactivate();
+		TrailSystemComponent->GetSystemInstanceController()->Deactivate();
 	}
 	if (RocketLoopComponent && RocketLoopComponent->IsPlaying())
 	{
@@ -125,10 +93,7 @@ void AProjectileRocket::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, 
 	// Super::OnHit(HitComp, OtherActor, OtherComp, NormalImpulse, Hit);
 }
 
-void AProjectileRocket::DestroyTimerFinished()
-{
-	Destroy();
-}
+
 
 void AProjectileRocket::Destroyed()
 {
