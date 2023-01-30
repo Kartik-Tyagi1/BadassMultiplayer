@@ -10,6 +10,7 @@
 #include "Camera/CameraComponent.h"
 #include "TimerManager.h"
 #include "Sound/SoundCue.h"
+#include "BadassMultiplayer/Character/Multiplayer_AnimInstance.h"
 
 
 UCombatComponent::UCombatComponent():
@@ -198,6 +199,12 @@ void UCombatComponent::EndFireTimer()
 bool UCombatComponent::CanFire()
 {
 	if (EquippedWeapon == nullptr) return false;
+	
+	// New Case for Shotgun to fire in between reload anim
+	if (!EquippedWeapon->IsWeaponEmpty() && bCanFire && CombatState == ECombatState::ECS_Reloading && EquippedWeapon->GetWeaponType() == EWeaponType::EWT_Shotgun)
+	{
+		return true;
+	}
 
 	// Return true if weapon is NOT empty and if we CAN fire (based on auto fire variable) and that we are unoccupied
 	return !EquippedWeapon->IsWeaponEmpty() && bCanFire && CombatState == ECombatState::ECS_Unoccupied;
@@ -212,6 +219,15 @@ void UCombatComponent::ServerFire_Implementation(const FVector_NetQuantize& Trac
 void UCombatComponent::NetMulticastFire_Implementation(const FVector_NetQuantize& TraceHitTarget)
 {
 	if (EquippedWeapon == nullptr) return;
+
+	if (Character && CombatState == ECombatState::ECS_Reloading && EquippedWeapon->GetWeaponType() == EWeaponType::EWT_Shotgun)
+	{
+		Character->PlayFireMontage(bIsAiming);
+		EquippedWeapon->FireWeapon(TraceHitTarget);
+		CombatState = ECombatState::ECS_Unoccupied;
+		return;
+	}
+
 	if (Character && CombatState == ECombatState::ECS_Unoccupied)
 	{
 		Character->PlayFireMontage(bIsAiming);
@@ -247,6 +263,14 @@ void UCombatComponent::FinishReload()
 	if (bFireButtonPressed)
 	{
 		Fire();
+	}
+}
+
+void UCombatComponent::ShotgunShellInsert()
+{
+	if (Character && Character->HasAuthority())
+	{
+		UpdateShotgunAmmoValues();
 	}
 }
 
@@ -289,7 +313,7 @@ int32 UCombatComponent::CalculateReloadAmount()
 
 void UCombatComponent::UpdateAmmoValues()
 {
-	if (EquippedWeapon == nullptr) return;
+	if (Character == nullptr || EquippedWeapon == nullptr) return;
 
 	// Calculate Amount to Reload and update the ammo map
 	int32 AmountToReload = CalculateReloadAmount();
@@ -307,6 +331,48 @@ void UCombatComponent::UpdateAmmoValues()
 	if (Controller)
 	{
 		Controller->SetHUDCarriedAmmo(CarriedAmmo);
+	}
+}
+
+void UCombatComponent::UpdateShotgunAmmoValues()
+{
+	if (Character == nullptr || EquippedWeapon == nullptr) return;
+
+	if (CarriedAmmoMap.Contains(EquippedWeapon->GetWeaponType()))
+	{
+		CarriedAmmoMap[EquippedWeapon->GetWeaponType()] -= 1;
+		CarriedAmmo = CarriedAmmoMap[EquippedWeapon->GetWeaponType()];
+	}
+
+	// Update the amount of ammo in the mag of the weapon
+	EquippedWeapon->AddAmmo(1);
+
+	// Update the HUD for the new carried ammo amount
+	Controller = Controller == nullptr ? Cast<AMPPlayerController>(Character->Controller) : Controller;
+	if (Controller)
+	{
+		Controller->SetHUDCarriedAmmo(CarriedAmmo);
+	}
+
+	bCanFire = true;
+		
+	// End the shotgun reload notifies if the shotgun is full and jump to finishreloading notify
+	if (EquippedWeapon->IsWeaponFull() || CarriedAmmo == 0)
+	{
+		JumpToShotgunReloadEnd();
+	}
+}
+
+void UCombatComponent::JumpToShotgunReloadEnd()
+{
+	// Dont play any animation if the character doesn't have a weapon
+	if (EquippedWeapon == nullptr) return;
+
+	UAnimInstance* AnimInstance = Character->GetMesh()->GetAnimInstance();
+	if (AnimInstance && Character->GetReloadMontage())
+	{
+		AnimInstance->Montage_Play(Character->GetReloadMontage());
+		AnimInstance->Montage_JumpToSection(FName("ShotgunEnd"));
 	}
 }
 
@@ -476,6 +542,16 @@ void UCombatComponent::OnRep_CarriedAmmo()
 	if (Controller)
 	{
 		Controller->SetHUDCarriedAmmo(CarriedAmmo);
+	}
+
+	bool bJumpToShotgunEnd = CombatState == ECombatState::ECS_Reloading &&
+		EquippedWeapon != nullptr &&
+		EquippedWeapon->GetWeaponType() == EWeaponType::EWT_Shotgun &&
+		CarriedAmmo == 0;
+
+	if (bJumpToShotgunEnd)
+	{
+		JumpToShotgunReloadEnd();
 	}
 }
 

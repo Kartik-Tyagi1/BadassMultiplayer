@@ -44,8 +44,6 @@ protected:
 	UFUNCTION()
 	void OnRep_EquippedWeapon();
 
-
-
 	// This excutes the weapon fire on the server
 	UFUNCTION(Server, Reliable)
 	void ServerFire(const FVector_NetQuantize& TraceHitTarget);
@@ -168,11 +166,20 @@ private:
 
 	void UpdateAmmoValues();
 
+	void UpdateShotgunAmmoValues();
+
+
+
 public:	
 	void Reload();
 
 	UFUNCTION(BlueprintCallable)
 	void FinishReload();
+
+	UFUNCTION(BlueprintCallable)
+	void ShotgunShellInsert();
+
+	void JumpToShotgunReloadEnd();
 
 
 		

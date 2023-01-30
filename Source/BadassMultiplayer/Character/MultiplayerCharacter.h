@@ -81,36 +81,36 @@ private:
 
 	/*********************** COMPONENTS *************************/
 	UPROPERTY(VisibleAnywhere, Category = Camera, meta = (AllowPrivateAccess = "true"))
-		UCameraComponent* Camera;
+	UCameraComponent* Camera;
 
 	UPROPERTY(VisibleAnywhere, Category = Camera, meta = (AllowPrivateAccess = "true"))
-		USpringArmComponent* SpringArm;
+	USpringArmComponent* SpringArm;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-		UWidgetComponent* OverheadWidget;
+	UWidgetComponent* OverheadWidget;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-		UCombatComponent* Combat;
+	UCombatComponent* Combat;
 
 	/* PlayerController */
 	UPROPERTY()
-		AMPPlayerController* MPPlayerController;
+	AMPPlayerController* MPPlayerController;
 
 	/* Player State */
 	UPROPERTY()
-		ABamPlayerState* BamPlayerState;
+	ABamPlayerState* BamPlayerState;
 
 
 	/*********************** Overlapping Weapons. Used with Equip Weapon Functions *************************/
 
 	UPROPERTY(ReplicatedUsing = OnRep_OverlappingWeapon)
-		AWeapon* OverlappingWeapon;
+	AWeapon* OverlappingWeapon;
 
 	UFUNCTION()
-		void OnRep_OverlappingWeapon(AWeapon* LastWeapon);
+	void OnRep_OverlappingWeapon(AWeapon* LastWeapon);
 
 	UFUNCTION(Server, Reliable)
-		void ServerEquipButtonPressed();
+	void ServerEquipButtonPressed();
 
 	/*********************** Aim offset yaw | pitch calculations | Turn in Place *************************/
 	float AO_Yaw;
@@ -125,20 +125,20 @@ private:
 
 	// Section to determine which fire weapon animation to use depending on aim state
 	UPROPERTY(EditAnywhere, Category = Combat)
-		UAnimMontage* FireWeaponMontage;
+	UAnimMontage* FireWeaponMontage;
 
 	// Section to determine which react animation to use depending on which side the hit came from
 	UPROPERTY(EditAnywhere, Category = Combat)
-		UAnimMontage* HitReactMontage;
+	UAnimMontage* HitReactMontage;
 
 	UPROPERTY(EditAnywhere, Category = Combat)
-		UAnimMontage* ElimMontage;
+	UAnimMontage* ElimMontage;
 
 	UPROPERTY(EditAnywhere, Category = Combat)
-		UAnimMontage* ReloadMontage;
+	UAnimMontage* ReloadMontage;
 
 	UPROPERTY(EditAnywhere, Category = Combat)
-		float CameraThreshold = 200.f;
+	float CameraThreshold = 200.f;
 
 	/*********************** Camera *************************/
 	void HideCamera();
@@ -156,13 +156,13 @@ private:
 
 	/*********************** PLAYER HEALTH *************************/
 	UPROPERTY(EditAnywhere, Category = "Player Stats")
-		float MaxHealth = 100.f;
+	float MaxHealth = 100.f;
 	
 	UPROPERTY(ReplicatedUsing = OnRep_Health, VisibleAnywhere, Category = "Player Stats")
-		float Health = 100.f;
+	float Health = 100.f;
 	
 	UFUNCTION()
-		void OnRep_Health();
+	void OnRep_Health();
 
 	/*********************** ELIMINATION AND RESPAWN *************************/
 	bool bIsEliminated = false;
@@ -217,6 +217,7 @@ public:
 	FORCEINLINE float GetMaxHealth() const { return Health; }
 	FORCEINLINE UCombatComponent* GetCombatComponent() const { return Combat; }
 	FORCEINLINE bool GetDisableGameplay() const { return bDisableGameplay; }
+	FORCEINLINE UAnimMontage* GetReloadMontage() const { return ReloadMontage; }
 	
 
 public:

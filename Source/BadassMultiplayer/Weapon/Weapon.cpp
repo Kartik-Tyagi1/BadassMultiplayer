@@ -9,6 +9,7 @@
 #include "BulletShell.h"
 #include "Engine/SkeletalMeshSocket.h"
 #include "BadassMultiplayer/PlayerController/MPPlayerController.h"
+#include "BadassMultiplayer/MultiplayerComponents/CombatComponent.h"
 
 
 AWeapon::AWeapon():
@@ -210,6 +211,11 @@ void AWeapon::SpendRound()
 // Called on Clients
 void AWeapon::OnRep_Ammo()
 {
+	OwnerCharacter = OwnerCharacter == nullptr ? Cast<AMultiplayerCharacter>(GetOwner()) : OwnerCharacter;
+	if (OwnerCharacter && OwnerCharacter->GetCombatComponent() && IsWeaponFull())
+	{
+		OwnerCharacter->GetCombatComponent()->JumpToShotgunReloadEnd();
+	}
 	SetHUDAmmo();
 }
 
