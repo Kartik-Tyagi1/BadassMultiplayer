@@ -20,30 +20,33 @@ class BADASSMULTIPLAYER_API UCharacterOverlay : public UUserWidget
 
 public:
 	UPROPERTY(meta = (BindWidget))
-		UProgressBar* HealthBar;
+	UProgressBar* HealthBar;
 
 	UPROPERTY(meta = (BindWidget))
-		UTextBlock* HealthText;
+	UTextBlock* HealthText;
 
 	UPROPERTY(meta = (BindWidget))
-		UTextBlock* KillCount;
+	UTextBlock* KillCount;
 
 	UPROPERTY(meta = (BindWidget))
-		UTextBlock* DefeatsAmount;
+	UTextBlock* DefeatsAmount;
 
 	UPROPERTY(meta = (BindWidget))
-		UTextBlock* WeaponAmmoAmount;
+	UTextBlock* WeaponAmmoAmount;
 
 	UPROPERTY(meta = (BindWidget))
-		UTextBlock* CarriedAmmoAmount;
+	UTextBlock* CarriedAmmoAmount;
 
 	UPROPERTY(meta = (BindWidget))
-		UTextBlock* WeaponType;
+	UTextBlock* WeaponType;
 
 	UPROPERTY(meta = (BindWidget))
-		UTextBlock* ElimText;
+	UTextBlock* ElimText;
 
 	UPROPERTY(meta = (BindWidget))
-		UTextBlock* MatchTimerText;
+	UTextBlock* MatchTimerText;
+
+	UPROPERTY(meta = (BindWidget))
+	UTextBlock* GrenadeAmount;
 
 };

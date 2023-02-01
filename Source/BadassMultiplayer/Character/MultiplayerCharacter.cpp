@@ -606,6 +606,8 @@ void AMultiplayerCharacter::PlayElimMontage()
 
 void AMultiplayerCharacter::RecieveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, AController* InstigatorController, AActor* DamageCauser)
 {
+	if (bIsEliminated) return; // Should not recieve damage if already eliminated
+
 	Health = FMath::Clamp(Health - Damage, 0.f, MaxHealth);
 	// On Server
 	UpdateHUDHealth();

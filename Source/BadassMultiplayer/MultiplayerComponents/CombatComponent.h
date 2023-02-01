@@ -183,11 +183,20 @@ private:
 	UPROPERTY(EditAnywhere, Category = Ammo)
 	int32 StartingGrenadeLauncherAmmo = 5;
 
+	UPROPERTY(EditAnywhere, Category = Ammo)
+	int32 MaxGrenades = 5;
+
+	UPROPERTY(ReplicatedUsing = OnRep_Grenades)
+	int32 Grenades = 2;
+
+	UFUNCTION()
+	void OnRep_Grenades();
+
+	void UpdateGrenadeHUD();
+
 	void UpdateAmmoValues();
 
 	void UpdateShotgunAmmoValues();
-
-
 
 public:	
 	void Reload();
@@ -208,5 +217,7 @@ public:
 
 	UFUNCTION(Server, Reliable)
 	void ServerLaunchGrenade(const FVector_NetQuantize& Target);
+
+	FORCEINLINE int32 GetGrenades() const { return Grenades; }
 	
 };

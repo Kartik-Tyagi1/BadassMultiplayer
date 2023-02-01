@@ -224,6 +224,24 @@ void AMPPlayerController::ClearElimText()
 	}
 }
 
+void AMPPlayerController::SetHUDGrenades(int32 Grenades)
+{
+	BadassHUD = BadassHUD == nullptr ? Cast<ABadassHUD>(GetHUD()) : BadassHUD;
+
+	bool bIsHUDValid = BadassHUD && BadassHUD->CharacterOverlay &&
+		BadassHUD->CharacterOverlay->GrenadeAmount;
+
+	if (bIsHUDValid)
+	{
+		FString GrenadeString = FString::Printf(TEXT("%d"), Grenades);
+		BadassHUD->CharacterOverlay->GrenadeAmount->SetText(FText::FromString(GrenadeString));
+	}
+	else
+	{
+		HUDGrenades = Grenades;
+	}
+}
+
 void AMPPlayerController::SetHUDMatchTimer(float CountdownTime)
 {
 	BadassHUD = BadassHUD == nullptr ? Cast<ABadassHUD>(GetHUD()) : BadassHUD;
@@ -477,6 +495,12 @@ void AMPPlayerController::PollInit()
 			SetHUDHealthStats(HUDHealth, HUDMaxHealth);
 			SetHUDKillCount(HUDKills);
 			SetHUDDefeats(HUDDeaths);
+
+			AMultiplayerCharacter* MC = Cast<AMultiplayerCharacter>(GetPawn());
+			if (MC && MC->GetCombatComponent())
+			{
+				SetHUDGrenades(MC->GetCombatComponent()->GetGrenades());
+			}
 		}
 	}
 }

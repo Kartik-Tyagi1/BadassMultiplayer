@@ -30,6 +30,7 @@ public:
 	void SetHUDAnnouncementCountdown(float CountdownTime);
 	void SetElimText(FString Text);
 	void ClearElimText();
+	void SetHUDGrenades(int32 Grenades);
 	virtual void OnPossess(APawn* InPawn) override;
 	virtual float GetServerTime(); // Synced with server world clock
 	virtual void ReceivedPlayer() override; // Sync with server clock as soon as possible
@@ -97,6 +98,7 @@ private:
 	float HUDMaxHealth;
 	float HUDKills;
 	int32 HUDDeaths;
+	int32 HUDGrenades;
 
 
 public: 
