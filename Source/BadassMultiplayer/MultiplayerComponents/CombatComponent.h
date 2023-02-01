@@ -69,6 +69,11 @@ protected:
 
 	int32 CalculateReloadAmount();
 
+	void ThrowGrenade();
+
+	UFUNCTION(Server, Reliable)
+	void ServerThrowGrenade();
+
 private:
 	/********************************** COMPONENTS ***************************************/
 	UPROPERTY()
@@ -181,6 +186,7 @@ public:
 
 	void JumpToShotgunReloadEnd();
 
-
-		
+	UFUNCTION(BlueprintCallable)
+	void FinishThrowingGrenade();
+	
 };

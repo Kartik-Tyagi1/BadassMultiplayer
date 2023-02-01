@@ -57,6 +57,7 @@ protected:
 	void FireButtonPressed();
 	void FireButtonReleased();
 	void ReloadButtonPressed();
+	void GrenadeButtonPressed();
 
 	void CalculateAO(float DeltaTime);
 	void TurnInPlace(float DeltaTime);
@@ -136,6 +137,9 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = Combat)
 	UAnimMontage* ReloadMontage;
+
+	UPROPERTY(EditAnywhere, Category = Combat)
+	UAnimMontage* ThrowGrenadeMontage;
 
 	UPROPERTY(EditAnywhere, Category = Combat)
 	float CameraThreshold = 200.f;
@@ -227,6 +231,7 @@ public:
 	AWeapon* GetEquippedWeapon();
 	void PlayFireMontage(bool bIsAiming);
 	void PlayReloadMontage();
+	void PlayThrowGrenadeMontage();
 	FVector GetHitTarget() const;
 	UCameraComponent* GetCamera() { return Camera; }
 
