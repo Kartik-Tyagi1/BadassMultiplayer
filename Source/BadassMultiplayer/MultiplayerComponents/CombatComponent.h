@@ -14,6 +14,7 @@ class AWeapon;
 class AMultiplayerCharacter;
 class AMPPlayerController;
 class ABadassHUD;
+class AProjectile;
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class BADASSMULTIPLAYER_API UCombatComponent : public UActorComponent
@@ -83,32 +84,36 @@ protected:
 
 	void ShowAttachedGrenade(bool bShowGrenade);
 
+protected:
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<AProjectile> GrenadeClass;
+
 private:
 	/********************************** COMPONENTS ***************************************/
 	UPROPERTY()
-		AMultiplayerCharacter* Character;
+	AMultiplayerCharacter* Character;
 
 	UPROPERTY()
-		AMPPlayerController* Controller;
+	AMPPlayerController* Controller;
 
 	UPROPERTY()
-		ABadassHUD* HUD;
+	ABadassHUD* HUD;
 
 	/********************************** Weapon and Firing ***************************************/
 
 	UPROPERTY(ReplicatedUsing = OnRep_EquippedWeapon)
-		AWeapon* EquippedWeapon;
+	AWeapon* EquippedWeapon;
 
 	UPROPERTY(Replicated)
-		bool bIsAiming;
+	bool bIsAiming;
 
 	UPROPERTY(EditAnywhere)
-		float AimWalkSpeed;
+	float AimWalkSpeed;
 
 	bool bFireButtonPressed;
 
 	UPROPERTY(EditAnywhere)
-		float BaseWalkSpeed;
+	float BaseWalkSpeed;
 
 	/* Automatic Fire */
 	FTimerHandle FireTimer;

@@ -11,6 +11,7 @@
 #include "TimerManager.h"
 #include "Sound/SoundCue.h"
 #include "BadassMultiplayer/Character/Multiplayer_AnimInstance.h"
+#include "BadassMultiplayer/Weapon/Projectile.h"
 
 
 UCombatComponent::UCombatComponent():
@@ -352,7 +353,7 @@ int32 UCombatComponent::CalculateReloadAmount()
 // Called Locally On Client
 void UCombatComponent::ThrowGrenade()
 {
-	if (CombatState != ECombatState::ECS_Unoccupied) return;
+	if (CombatState != ECombatState::ECS_Unoccupied || EquippedWeapon == nullptr) return;
 
 	CombatState = ECombatState::ECS_ThrowingGrenade;
 	if (Character)
@@ -397,6 +398,15 @@ void UCombatComponent::FinishThrowingGrenade()
 void UCombatComponent::LaunchGrenade()
 {
 	ShowAttachedGrenade(false);
+	if (Character && Character->HasAuthority() && Character->GetGrenadeMesh() && GrenadeClass)
+	{
+		const FVector StartingGrenadeLocation = Character->GetGrenadeMesh()->GetComponentLocation();
+		FVector ToTarget = HitTarget - StartingGrenadeLocation;
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.Owner = Character;
+		SpawnParams.Instigator = Character;
+		GetWorld()->SpawnActor<AProjectile>(GrenadeClass, StartingGrenadeLocation, ToTarget.Rotation(), SpawnParams);
+	}
 }
 
 void UCombatComponent::UpdateAmmoValues()
