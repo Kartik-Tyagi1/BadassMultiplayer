@@ -131,6 +131,9 @@ public:
 	FORCEINLINE int32 GetMagCapacity() const { return MagCapacity; }
 	void AddAmmo(int32 AmmoToAdd);
 
+	// Enable or Disable Custom Depth on Weapon Mesh for Weapon Outline
+	void EnableCustomDepth(bool bEnable);
+
 	/* Textures for the weapon crosshairs. These are individual so we can make them dynamic */
 	UPROPERTY(EditAnywhere, Category = Crosshairs)
 		UTexture2D* CrosshairCenter;
