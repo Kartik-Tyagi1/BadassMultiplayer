@@ -93,6 +93,9 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	UCombatComponent* Combat;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	UStaticMeshComponent* AttachedGrenade;
+
 	/* PlayerController */
 	UPROPERTY()
 	AMPPlayerController* MPPlayerController;
