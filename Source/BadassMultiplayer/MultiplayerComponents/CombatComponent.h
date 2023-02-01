@@ -81,6 +81,8 @@ protected:
 	void PlayWeaponEquipSound();
 	void ReloadWeaponIfEmpty();
 
+	void ShowAttachedGrenade(bool bShowGrenade);
+
 private:
 	/********************************** COMPONENTS ***************************************/
 	UPROPERTY()
@@ -195,5 +197,8 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void FinishThrowingGrenade();
+
+	UFUNCTION(BlueprintCallable)
+	void LaunchGrenade();
 	
 };

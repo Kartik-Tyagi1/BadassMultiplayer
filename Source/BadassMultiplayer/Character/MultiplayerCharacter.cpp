@@ -111,6 +111,11 @@ void AMultiplayerCharacter::BeginPlay()
 	}
 
 	UpdateHUDHealth();
+
+	if (AttachedGrenade)
+	{
+		AttachedGrenade->SetVisibility(false);
+	}
 }
 
 void AMultiplayerCharacter::PostInitializeComponents()

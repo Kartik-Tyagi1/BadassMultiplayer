@@ -322,6 +322,7 @@ void UCombatComponent::OnRep_CombatState()
 		{
 			Character->PlayThrowGrenadeMontage();
 			AttachActorToLeftHand(EquippedWeapon);
+			ShowAttachedGrenade(true);
 		}
 		break;
 	}
@@ -358,6 +359,7 @@ void UCombatComponent::ThrowGrenade()
 	{
 		Character->PlayThrowGrenadeMontage();
 		AttachActorToLeftHand(EquippedWeapon);
+		ShowAttachedGrenade(true);
 	}
 
 	if (Character && !Character->HasAuthority())
@@ -365,8 +367,6 @@ void UCombatComponent::ThrowGrenade()
 		ServerThrowGrenade();
 	}
 }
-
-
 
 // Plays Anim on Server Instance
 void UCombatComponent::ServerThrowGrenade_Implementation()
@@ -376,6 +376,15 @@ void UCombatComponent::ServerThrowGrenade_Implementation()
 	{
 		Character->PlayThrowGrenadeMontage();
 		AttachActorToLeftHand(EquippedWeapon);
+		ShowAttachedGrenade(true);
+	}
+}
+
+void UCombatComponent::ShowAttachedGrenade(bool bShowGrenade)
+{
+	if (Character && Character->GetGrenadeMesh())
+	{
+		Character->GetGrenadeMesh()->SetVisibility(bShowGrenade);
 	}
 }
 
@@ -383,6 +392,11 @@ void UCombatComponent::FinishThrowingGrenade()
 {
 	CombatState = ECombatState::ECS_Unoccupied;
 	AttachActorToRightHand(EquippedWeapon);
+}
+
+void UCombatComponent::LaunchGrenade()
+{
+	ShowAttachedGrenade(false);
 }
 
 void UCombatComponent::UpdateAmmoValues()
