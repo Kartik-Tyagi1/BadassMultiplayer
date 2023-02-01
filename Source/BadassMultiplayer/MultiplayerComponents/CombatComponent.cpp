@@ -398,10 +398,18 @@ void UCombatComponent::FinishThrowingGrenade()
 void UCombatComponent::LaunchGrenade()
 {
 	ShowAttachedGrenade(false);
-	if (Character && Character->HasAuthority() && Character->GetGrenadeMesh() && GrenadeClass)
+	if (Character && Character->IsLocallyControlled())
+	{
+		ServerLaunchGrenade(HitTarget);
+	}
+}
+
+void UCombatComponent::ServerLaunchGrenade_Implementation(const FVector_NetQuantize& Target)
+{
+	if (Character && Character->GetGrenadeMesh() && GrenadeClass)
 	{
 		const FVector StartingGrenadeLocation = Character->GetGrenadeMesh()->GetComponentLocation();
-		FVector ToTarget = HitTarget - StartingGrenadeLocation;
+		FVector ToTarget = Target - StartingGrenadeLocation;
 		FActorSpawnParameters SpawnParams;
 		SpawnParams.Owner = Character;
 		SpawnParams.Instigator = Character;
