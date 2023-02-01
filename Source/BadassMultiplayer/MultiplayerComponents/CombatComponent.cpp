@@ -72,8 +72,28 @@ void UCombatComponent::EquipWeapon(AWeapon* WeaponToEquip)
 {
 	if (Character == nullptr || WeaponToEquip == nullptr) return;
 	if (CombatState != ECombatState::ECS_Unoccupied) return;
-	Controller = Controller == nullptr ? Cast<AMPPlayerController>(Character->Controller) : Controller;
 
+	DropEquippedWeapon();
+
+	EquippedWeapon = WeaponToEquip;
+	EquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
+
+	AttachActorToRightHand(EquippedWeapon);
+
+	// The Owner is a built in replicated variable. So when we change the owner, it will be replicated across clients
+	EquippedWeapon->SetOwner(Character);
+	EquippedWeapon->SetHUDAmmo();
+
+	UpdateCarriedAmmo();
+	PlayWeaponEquipSound();
+	ReloadWeaponIfEmpty();
+
+	Character->GetCharacterMovement()->bOrientRotationToMovement = false;
+	Character->bUseControllerRotationYaw = true;
+}
+
+void UCombatComponent::DropEquippedWeapon()
+{
 	// Drop Weapon if picking another one up
 	if (EquippedWeapon)
 	{
@@ -83,43 +103,61 @@ void UCombatComponent::EquipWeapon(AWeapon* WeaponToEquip)
 			Controller->SetHUDWeaponType(EWeaponType::EWT_MAX);
 		}
 	}
+}
 
-	EquippedWeapon = WeaponToEquip;
-	EquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
+void UCombatComponent::AttachActorToRightHand(AActor* ActorToAttach)
+{
+	if (Character == nullptr || Character->GetMesh() == nullptr || ActorToAttach == nullptr) return;
 
 	const USkeletalMeshSocket* RightHandSocket = Character->GetMesh()->GetSocketByName(FName("RightHandSocket"));
 	if (RightHandSocket)
 	{
-		RightHandSocket->AttachActor(EquippedWeapon, Character->GetMesh());
+		RightHandSocket->AttachActor(ActorToAttach, Character->GetMesh());
 	}
+}
 
-	// The Owner is a built in replicated variable. So when we change the owner, it will be replicated across clients
-	EquippedWeapon->SetOwner(Character);
-	EquippedWeapon->SetHUDAmmo();
+void UCombatComponent::AttachActorToLeftHand(AActor* ActorToAttach)
+{
+	if (Character == nullptr || Character->GetMesh() == nullptr || ActorToAttach == nullptr) return;
+
+	const USkeletalMeshSocket* RightHandSocket = Character->GetMesh()->GetSocketByName(FName("LeftHandSocket"));
+	if (RightHandSocket)
+	{
+		RightHandSocket->AttachActor(ActorToAttach, Character->GetMesh());
+	}
+}
+
+void UCombatComponent::UpdateCarriedAmmo()
+{
+	if (EquippedWeapon == nullptr) return;
 
 	if (CarriedAmmoMap.Contains(EquippedWeapon->GetWeaponType()))
 	{
 		CarriedAmmo = CarriedAmmoMap[EquippedWeapon->GetWeaponType()];
 	}
 
+	Controller = Controller == nullptr ? Cast<AMPPlayerController>(Character->Controller) : Controller;
 	if (Controller)
 	{
 		Controller->SetHUDCarriedAmmo(CarriedAmmo);
 		Controller->SetHUDWeaponType(EquippedWeapon->GetWeaponType());
 	}
+}
 
-	if (EquippedWeapon->WeaponEquipSound)
+void UCombatComponent::PlayWeaponEquipSound()
+{
+	if (Character && EquippedWeapon && EquippedWeapon->WeaponEquipSound)
 	{
 		UGameplayStatics::PlaySoundAtLocation(this, EquippedWeapon->WeaponEquipSound, Character->GetActorLocation());
 	}
+}
 
-	if (EquippedWeapon->IsWeaponEmpty())
+void UCombatComponent::ReloadWeaponIfEmpty()
+{
+	if (EquippedWeapon && EquippedWeapon->IsWeaponEmpty())
 	{
 		Reload();
 	}
-
-	Character->GetCharacterMovement()->bOrientRotationToMovement = false;
-	Character->bUseControllerRotationYaw = true;
 }
 
 void UCombatComponent::OnRep_EquippedWeapon()
@@ -134,16 +172,9 @@ void UCombatComponent::OnRep_EquippedWeapon()
 
 		// This needs to be done here in case the weapon state isn't set. Calling it here makes the variable replicate across clients before the weapon is attached
 		EquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
-		const USkeletalMeshSocket* RightHandSocket = Character->GetMesh()->GetSocketByName(FName("RightHandSocket"));
-		if (RightHandSocket)
-		{
-			RightHandSocket->AttachActor(EquippedWeapon, Character->GetMesh());
-		}
+		AttachActorToRightHand(EquippedWeapon);
 
-		if (EquippedWeapon->WeaponEquipSound)
-		{
-			UGameplayStatics::PlaySoundAtLocation(this, EquippedWeapon->WeaponEquipSound, Character->GetActorLocation());
-		}
+		PlayWeaponEquipSound();
 
 		Character->GetCharacterMovement()->bOrientRotationToMovement = false;
 		Character->bUseControllerRotationYaw = true;
@@ -191,10 +222,7 @@ void UCombatComponent::EndFireTimer()
 	{
 		Fire();
 	}
-	if (EquippedWeapon->IsWeaponEmpty())
-	{
-		Reload();
-	}
+	ReloadWeaponIfEmpty();
 }
 
 bool UCombatComponent::CanFire()
@@ -293,6 +321,7 @@ void UCombatComponent::OnRep_CombatState()
 		if (Character && !Character->IsLocallyControlled())
 		{
 			Character->PlayThrowGrenadeMontage();
+			AttachActorToLeftHand(EquippedWeapon);
 		}
 		break;
 	}
@@ -328,6 +357,7 @@ void UCombatComponent::ThrowGrenade()
 	if (Character)
 	{
 		Character->PlayThrowGrenadeMontage();
+		AttachActorToLeftHand(EquippedWeapon);
 	}
 
 	if (Character && !Character->HasAuthority())
@@ -336,6 +366,8 @@ void UCombatComponent::ThrowGrenade()
 	}
 }
 
+
+
 // Plays Anim on Server Instance
 void UCombatComponent::ServerThrowGrenade_Implementation()
 {
@@ -343,12 +375,14 @@ void UCombatComponent::ServerThrowGrenade_Implementation()
 	if (Character)
 	{
 		Character->PlayThrowGrenadeMontage();
+		AttachActorToLeftHand(EquippedWeapon);
 	}
 }
 
 void UCombatComponent::FinishThrowingGrenade()
 {
 	CombatState = ECombatState::ECS_Unoccupied;
+	AttachActorToRightHand(EquippedWeapon);
 }
 
 void UCombatComponent::UpdateAmmoValues()
