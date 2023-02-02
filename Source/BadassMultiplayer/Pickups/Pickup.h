@@ -30,6 +30,12 @@ protected:
 		const FHitResult& SweepResult
 	);
 
+	void RotatePickup(float DeltaTime);
+
+protected:
+	UPROPERTY(EditAnywhere)
+	float BaseTurnRate = 45.f;
+
 private:
 	UPROPERTY(EditAnywhere)
 	USphereComponent* OverlapSphere;

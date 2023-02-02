@@ -189,6 +189,9 @@ private:
 	UPROPERTY(ReplicatedUsing = OnRep_Grenades)
 	int32 Grenades = 2;
 
+	UPROPERTY(EditAnywhere, Category = Ammo)
+	int32 MaxCarriedAmmo = 500;
+
 	UFUNCTION()
 	void OnRep_Grenades();
 
@@ -219,5 +222,7 @@ public:
 	void ServerLaunchGrenade(const FVector_NetQuantize& Target);
 
 	FORCEINLINE int32 GetGrenades() const { return Grenades; }
+
+	void PickupAmmo(EWeaponType WeaponType, int32 AmmoAmount);
 	
 };
