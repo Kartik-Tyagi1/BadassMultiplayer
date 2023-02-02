@@ -1,6 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "Weapon.h"
 #include "Components/SphereComponent.h"
 #include "Components/WidgetComponent.h"
@@ -10,7 +7,6 @@
 #include "Engine/SkeletalMeshSocket.h"
 #include "BadassMultiplayer/PlayerController/MPPlayerController.h"
 #include "BadassMultiplayer/MultiplayerComponents/CombatComponent.h"
-
 
 AWeapon::AWeapon():
 	WeaponState(EWeaponState::EWS_Initial)
@@ -52,8 +48,8 @@ void AWeapon::BeginPlay()
 		// Enable collision to overlap with the player characters
 		AreaSphere->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 		AreaSphere->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
-		AreaSphere->OnComponentBeginOverlap.AddDynamic(this, &ThisClass::OnAreaSphereOverlap);
-		AreaSphere->OnComponentEndOverlap.AddDynamic(this, &ThisClass::OnAreaSphereEndOverlap);
+		AreaSphere->OnComponentBeginOverlap.AddDynamic(this, &AWeapon::OnAreaSphereOverlap);
+		AreaSphere->OnComponentEndOverlap.AddDynamic(this, &AWeapon::OnAreaSphereEndOverlap);
 	}
 
 	if (PickupWidget)
