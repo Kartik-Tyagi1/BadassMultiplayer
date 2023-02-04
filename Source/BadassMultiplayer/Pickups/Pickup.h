@@ -6,6 +6,8 @@
 
 class USphereComponent;
 class USoundCue;
+class UNiagaraComponent;
+class UNiagaraSystem;
 
 UCLASS()
 class BADASSMULTIPLAYER_API APickup : public AActor
@@ -33,6 +35,17 @@ protected:
 	void RotatePickup(float DeltaTime);
 
 protected:
+	// Kinda like the mesh but uses Niagara Component for cool effects
+	UPROPERTY(VisibleAnywhere)
+	UNiagaraComponent* PickupEffectComponent;
+
+	// Effect played after the Niagara Component is picked up
+	UPROPERTY(EditAnywhere)
+	UNiagaraSystem* PickupEffectSystem;
+
+	UPROPERTY(EditAnywhere)
+	float RaiseSystemAmount = 100.f;
+
 	UPROPERTY(EditAnywhere)
 	float BaseTurnRate = 45.f;
 
@@ -45,6 +58,7 @@ private:
 
 	UPROPERTY(EditAnywhere)
 	UStaticMeshComponent* PickupMesh;
+
 
 
 public:	

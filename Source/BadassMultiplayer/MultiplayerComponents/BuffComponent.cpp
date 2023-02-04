@@ -1,5 +1,8 @@
 #include "BuffComponent.h"
 #include "BadassMultiplayer/Character/MultiplayerCharacter.h"
+#include "BadassMultiplayer/MultiplayerComponents/CombatComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
+
 
 UBuffComponent::UBuffComponent()
 {
@@ -40,6 +43,54 @@ void UBuffComponent::HealRampUp(float DeltaTime)
 	{
 		bIsHealing = false;
 		AmountToHeal = 0.f;
+	}
+}
+
+void UBuffComponent::BuffSpeed(float BuffedWalkSpeed, float BuffedCrouchSpeed, float BuffTime)
+{
+	if (Character == nullptr) return;
+
+	Character->GetWorldTimerManager().SetTimer(
+		SpeedBuffTimer, 
+		this, 
+		&UBuffComponent::EndSpeedBuffTimer, 
+		BuffTime
+	);
+
+	if (Character->GetCharacterMovement())
+	{
+		Character->GetCharacterMovement()->MaxWalkSpeed = BuffedWalkSpeed;
+		Character->GetCharacterMovement()->MaxWalkSpeedCrouched = BuffedCrouchSpeed;
+	}
+
+
+	MulticastSpeedBuff(BuffedWalkSpeed, BuffedCrouchSpeed);
+}
+
+void UBuffComponent::EndSpeedBuffTimer()
+{
+	if (Character == nullptr || Character->GetCharacterMovement() == nullptr) return;
+
+	Character->GetCharacterMovement()->MaxWalkSpeed = BaseWalkSpeed;
+	Character->GetCharacterMovement()->MaxWalkSpeedCrouched = BaseCrouchSpeed;
+	MulticastSpeedBuff(BaseWalkSpeed, BaseCrouchSpeed);
+}
+
+void UBuffComponent::SetBaseSpeeds(float WalkSpeedAmount, float CrouchSpeedAmount)
+{
+	BaseWalkSpeed = WalkSpeedAmount; 
+	BaseCrouchSpeed = CrouchSpeedAmount;
+}
+
+void UBuffComponent::MulticastSpeedBuff_Implementation(float WalkSpeed, float CrouchSpeed)
+{
+	Character->GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
+	Character->GetCharacterMovement()->MaxWalkSpeedCrouched = CrouchSpeed;
+
+	if (Character->GetCombatComponent())
+	{
+		// Increase base walk speed on combat component when buffed so aiming doesn't turn it off
+		Character->GetCombatComponent()->SetSpeeds(WalkSpeed);
 	}
 }
 

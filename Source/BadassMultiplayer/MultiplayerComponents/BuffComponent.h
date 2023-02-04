@@ -21,6 +21,8 @@ public:
 
 	void HealCharacter(float HealAmount, float HealingTime);
 
+	void BuffSpeed(float BuffedWalkSpeed, float BuffedCrouchSpeed, float BuffTime);
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -31,6 +33,8 @@ private:
 	UPROPERTY()
 	AMultiplayerCharacter* Character;
 
+	/*----------------------------------------------------- Health Buff -----------------------------------------------------------*/
+
 	// Tracks if we are already healing, to not keep healing and increase the health bar
 	bool bIsHealing = false;
 
@@ -40,8 +44,19 @@ private:
 	// Tracks how much to heal, should not heal more after reaching this amount
 	float AmountToHeal = 0.f;
 
-public:	
-	
+	/*----------------------------------------------------- Speed Buff ------------------------------------------------------------*/
 
-		
+	FTimerHandle SpeedBuffTimer;
+
+	void EndSpeedBuffTimer();
+
+	float BaseWalkSpeed;
+	float BaseCrouchSpeed;
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastSpeedBuff(float WalkSpeed, float CrouchSpeed);
+
+public:	
+	void SetBaseSpeeds(float WalkSpeedAmount, float CrouchSpeedAmount);
+	
 };
