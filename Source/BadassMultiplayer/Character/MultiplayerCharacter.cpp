@@ -814,12 +814,16 @@ float AMultiplayerCharacter::CalculateSpeed()
 	return Velocity.Size();
 }
 
-void AMultiplayerCharacter::OnRep_Health()
+void AMultiplayerCharacter::OnRep_Health(float PreviousHealth)
 {
-	// Since Health is set up to replicate, we can use it instead of an RPC to play the hitReacts
-	// On Clients
+	// Since Health is set up to replicate, we can use it instead of an RPC to play the hitReacts on Clients
 	UpdateHUDHealth();
-	PlayHitReactMontage(); 
+
+	// Only play hitreact if character health decreased
+	if (PreviousHealth > Health)
+	{
+		PlayHitReactMontage(); 
+	}
 }
 
 void AMultiplayerCharacter::UpdateDissolveMaterial(float DissolveValue)

@@ -20,7 +20,7 @@ void AHealthPickup::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AA
 	AMultiplayerCharacter* Character = Cast<AMultiplayerCharacter>(OtherActor);
 	if (Character && Character->GetBuffComponent())
 	{
-		
+		Character->GetBuffComponent()->HealCharacter(HealAmount, HealingTime);
 	}
 
 	Destroy();

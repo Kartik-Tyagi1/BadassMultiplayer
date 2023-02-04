@@ -70,7 +70,6 @@ protected:
 
 	UFUNCTION()
 	void RecieveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, class AController* InstigatorController, AActor* DamageCauser);
-	void UpdateHUDHealth();
 
 	virtual void Destroyed() override;
 
@@ -173,7 +172,7 @@ private:
 	float Health = 100.f;
 	
 	UFUNCTION()
-	void OnRep_Health();
+	void OnRep_Health(float PreviousHealth);
 
 	/*********************** ELIMINATION AND RESPAWN *************************/
 	bool bIsEliminated = false;
@@ -218,31 +217,37 @@ private:
 	USoundCue* ElimSound;
 
 
-// INLINES
+// Getters
 public:
 	FORCEINLINE float GetAO_Yaw() const { return AO_Yaw; }
 	FORCEINLINE float GetAO_Pitch() const { return AO_Pitch; }
 	FORCEINLINE ETurningState GetTurningState() const { return TurningState; }
 	FORCEINLINE bool ShouldRotateRootBone() const { return bRotateRootBone; }
-	// FORCEINLINE float GetHealth() const { return Health; }
-	FORCEINLINE float GetMaxHealth() const { return Health; }
+	FORCEINLINE float GetHealth() const { return Health; }
+	FORCEINLINE float GetMaxHealth() const { return MaxHealth; }
 	FORCEINLINE UCombatComponent* GetCombatComponent() const { return Combat; }
 	FORCEINLINE UBuffComponent* GetBuffComponent() const { return Buff; }
 	FORCEINLINE bool GetDisableGameplay() const { return bDisableGameplay; }
 	FORCEINLINE UAnimMontage* GetReloadMontage() const { return ReloadMontage; }
 	FORCEINLINE UStaticMeshComponent* GetGrenadeMesh() const { return AttachedGrenade; }
-	
+	FVector GetHitTarget() const;
+	UCameraComponent* GetCamera() { return Camera; }
+	AWeapon* GetEquippedWeapon();
+	bool GetIsAiming();
+	bool GetIsEliminated() const { return bIsEliminated; }
+	ECombatState GetCombatState() const;
+	bool IsWeaponEquipped();
+
+// Setters
+public:
+	FORCEINLINE void SetHealth(float Amount) { Health = Amount; }
+	void SetOverlappingWeapon(AWeapon* Weapon);
 
 public:
-	void SetOverlappingWeapon(AWeapon* Weapon);
-	bool IsWeaponEquipped();
-	bool GetIsAiming();
-	AWeapon* GetEquippedWeapon();
 	void PlayFireMontage(bool bIsAiming);
 	void PlayReloadMontage();
 	void PlayThrowGrenadeMontage();
-	FVector GetHitTarget() const;
-	UCameraComponent* GetCamera() { return Camera; }
+	void UpdateHUDHealth();
 
 	// Server Eliminination Stuff
 	void Eliminated(APlayerController* AttackerController);
@@ -250,10 +255,6 @@ public:
 	// Server and Client Elimination Stuff
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastEliminated(const FString& AttackerName);
-
-	bool GetIsEliminated() const { return bIsEliminated; }
-
-	ECombatState GetCombatState() const;
 
 	UPROPERTY(Replicated)
 	bool bDisableGameplay = false;
