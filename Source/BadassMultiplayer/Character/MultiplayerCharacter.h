@@ -19,6 +19,7 @@ class UAnimMontage;
 class AMPPlayerController;
 class USoundCue;
 class ABamPlayerState;
+class UBuffComponent;
 
 UCLASS()
 class BADASSMULTIPLAYER_API AMultiplayerCharacter : public ACharacter, public ICrosshairsInterface
@@ -92,6 +93,9 @@ private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	UCombatComponent* Combat;
+
+	UPROPERTY(VisibleAnywhere, meta = (AllowPrivateAccess = "true"))
+	UBuffComponent* Buff;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	UStaticMeshComponent* AttachedGrenade;

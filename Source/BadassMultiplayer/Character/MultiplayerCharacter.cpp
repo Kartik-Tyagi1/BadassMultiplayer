@@ -1,24 +1,26 @@
 #include "MultiplayerCharacter.h"
+#include "Multiplayer_AnimInstance.h"
+#include "BadassMultiplayer/Weapon/Weapon.h"
+#include "BadassMultiplayer/MultiplayerComponents/CombatComponent.h"
+#include "BadassMultiplayer/MultiplayerComponents/BuffComponent.h"
+#include "BadassMultiplayer/PlayerController/MPPlayerController.h"
+#include "BadassMultiplayer/GameModes/BamGameMode.h"
+#include "BadassMultiplayer/PlayerState/BamPlayerState.h"
+#include "BadassMultiplayer/Weapon/WeaponTypes.h"
+#include "BadassMultiplayer/BadassMultiplayer.h"
+
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/WidgetComponent.h"
 #include "Net/UnrealNetwork.h"
-#include "BadassMultiplayer/Weapon/Weapon.h"
-#include "BadassMultiplayer/MultiplayerComponents/CombatComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Kismet/KismetMathLibrary.h"
-#include "Multiplayer_AnimInstance.h"
 #include "Animation/AnimMontage.h"
-#include "BadassMultiplayer/BadassMultiplayer.h"
-#include "BadassMultiplayer/PlayerController/MPPlayerController.h"
-#include "BadassMultiplayer/GameModes/BamGameMode.h"
 #include "TimerManager.h"
 #include "Kismet/GameplayStatics.h"
 #include "Sound/SoundCue.h"
 #include "Particles/ParticleSystemComponent.h"
-#include "BadassMultiplayer/PlayerState/BamPlayerState.h"
-#include "BadassMultiplayer/Weapon/WeaponTypes.h"
 
 
 AMultiplayerCharacter::AMultiplayerCharacter() :
@@ -46,6 +48,9 @@ AMultiplayerCharacter::AMultiplayerCharacter() :
 	Combat = CreateDefaultSubobject<UCombatComponent>(TEXT("CombatComponent"));
 	// No need to register components since they are special and get replicated themselves
 	Combat->SetIsReplicated(true);
+
+	Buff = CreateDefaultSubobject<UBuffComponent>(TEXT("BuffComponent"));
+	Buff->SetIsReplicated(true);
 	
 	GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
 
@@ -126,6 +131,11 @@ void AMultiplayerCharacter::PostInitializeComponents()
 	if (Combat)
 	{
 		Combat->Character = this;
+	}
+
+	if (Buff)
+	{
+		Buff->Character = this;
 	}
 }
 
