@@ -137,6 +137,7 @@ void AMultiplayerCharacter::PostInitializeComponents()
 	{
 		Buff->Character = this;
 		Buff->SetBaseSpeeds(GetCharacterMovement()->MaxWalkSpeed, GetCharacterMovement()->MaxWalkSpeedCrouched);
+		Buff->SetBaseJumpVelocity(GetCharacterMovement()->JumpZVelocity);
 	}
 }
 

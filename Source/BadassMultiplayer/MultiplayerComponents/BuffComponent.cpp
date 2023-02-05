@@ -76,21 +76,70 @@ void UBuffComponent::EndSpeedBuffTimer()
 	MulticastSpeedBuff(BaseWalkSpeed, BaseCrouchSpeed);
 }
 
+
+
 void UBuffComponent::SetBaseSpeeds(float WalkSpeedAmount, float CrouchSpeedAmount)
 {
 	BaseWalkSpeed = WalkSpeedAmount; 
 	BaseCrouchSpeed = CrouchSpeedAmount;
 }
 
+
+
 void UBuffComponent::MulticastSpeedBuff_Implementation(float WalkSpeed, float CrouchSpeed)
 {
-	Character->GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
-	Character->GetCharacterMovement()->MaxWalkSpeedCrouched = CrouchSpeed;
-
-	if (Character->GetCombatComponent())
+	if (Character && Character->GetCharacterMovement())
+	{
+		Character->GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
+		Character->GetCharacterMovement()->MaxWalkSpeedCrouched = CrouchSpeed;
+	}
+	
+	if (Character && Character->GetCombatComponent())
 	{
 		// Increase base walk speed on combat component when buffed so aiming doesn't turn it off
 		Character->GetCombatComponent()->SetSpeeds(WalkSpeed);
 	}
 }
+
+void UBuffComponent::BuffJump(float JumpBuffVelocity, float BuffTime)
+{
+	if (Character == nullptr) return;
+
+	Character->GetWorldTimerManager().SetTimer(
+		JumpBuffTimer,
+		this,
+		&UBuffComponent::EndJumpBuffTimer,
+		BuffTime
+	);
+
+	if (Character->GetCharacterMovement())
+	{
+		Character->GetCharacterMovement()->JumpZVelocity = JumpBuffVelocity;
+	}
+
+	MulticastJumpBuff(JumpBuffVelocity);
+}
+
+void UBuffComponent::EndJumpBuffTimer()
+{
+	if (Character == nullptr || Character->GetCharacterMovement() == nullptr) return;
+	Character->GetCharacterMovement()->JumpZVelocity = BaseJumpVelocity;
+	MulticastJumpBuff(BaseJumpVelocity);
+
+}
+
+void UBuffComponent::SetBaseJumpVelocity(float JumpVelocity)
+{
+	BaseJumpVelocity = JumpVelocity;
+}
+
+void UBuffComponent::MulticastJumpBuff_Implementation(float JumpVelocity)
+{
+	if (Character && Character->GetCharacterMovement())
+	{
+		Character->GetCharacterMovement()->JumpZVelocity = JumpVelocity;
+	}
+}
+
+
 

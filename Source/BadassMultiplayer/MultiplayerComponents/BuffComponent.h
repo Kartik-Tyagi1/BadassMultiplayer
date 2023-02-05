@@ -23,6 +23,8 @@ public:
 
 	void BuffSpeed(float BuffedWalkSpeed, float BuffedCrouchSpeed, float BuffTime);
 
+	void BuffJump(float JumpBuffVelocity, float BuffTime);
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -56,7 +58,19 @@ private:
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastSpeedBuff(float WalkSpeed, float CrouchSpeed);
 
+	/*----------------------------------------------------- Speed Buff ------------------------------------------------------------*/
+
+	FTimerHandle JumpBuffTimer;
+
+	void EndJumpBuffTimer();
+
+	float BaseJumpVelocity;
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastJumpBuff(float JumpVelocity);
+
 public:	
 	void SetBaseSpeeds(float WalkSpeedAmount, float CrouchSpeedAmount);
+	void SetBaseJumpVelocity(float JumpVelocity);
 	
 };
