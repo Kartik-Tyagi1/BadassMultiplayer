@@ -20,7 +20,9 @@ class BADASSMULTIPLAYER_API AMPPlayerController : public APlayerController
 
 public:
 	virtual void GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& OutLifetimeProps) const override;
+
 	void SetHUDHealthStats(float Health, float MaxHealth);
+	void SetHUDShieldStats(float Shield, float MaxShield);
 	void SetHUDKillCount(float Kills);
 	void SetHUDDefeats(int32 Defeats);
 	void SetHUDWeaponAmmo(int32 Ammo); // Ammo In the Weapon 
@@ -28,6 +30,7 @@ public:
 	void SetHUDWeaponType(EWeaponType WeaponType);
 	void SetHUDMatchTimer(float CountdownTime);
 	void SetHUDAnnouncementCountdown(float CountdownTime);
+
 	void SetElimText(FString Text);
 	void ClearElimText();
 	void SetHUDGrenades(int32 Grenades);
@@ -71,13 +74,13 @@ protected:
 
 private:
 	UPROPERTY()
-		ABadassHUD* BadassHUD;
+	ABadassHUD* BadassHUD;
 
 	UPROPERTY()
-		UCharacterOverlay* CharacterOverlay;
+	UCharacterOverlay* CharacterOverlay;
 
 	UPROPERTY()
-		ABamGameMode* BamGameMode;
+	ABamGameMode* BamGameMode;
 
 	float MatchTime = 0.f;
 	float WarmupTime = 0.f;
@@ -86,16 +89,22 @@ private:
 	uint32 CountdownInt = 0;
 
 	UPROPERTY(Replicated, ReplicatedUsing=OnRep_MatchState)
-		FName MatchState;
+	FName MatchState;
 
 	UFUNCTION()
-		void OnRep_MatchState();
+	void OnRep_MatchState();
 	
-	bool bInitializeCharacterOverlay = false;
+	bool bInitializeHealth = false;
+	bool bInitializeShield = false;
+	bool bInitializeKills = false;
+	bool bInitializeDeaths = false;
+	bool bInitializeGrenades = false;
 
 	/* Cached values that will be used to initialize the HUD */
 	float HUDHealth;
 	float HUDMaxHealth;
+	float HUDShield;
+	float HUDMaxShield;
 	float HUDKills;
 	int32 HUDDeaths;
 	int32 HUDGrenades;

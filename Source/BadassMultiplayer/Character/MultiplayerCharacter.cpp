@@ -85,6 +85,7 @@ void AMultiplayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>
 	*		DOREPLIFETIME(AMultiplayerCharacter, OverlappingWeapon);
 	*/ 
 	DOREPLIFETIME(AMultiplayerCharacter, Health);
+	DOREPLIFETIME(AMultiplayerCharacter, Shield);
 	
 	/*
 	* To only have the OverlappingWeapon replicated on the client we have to specify a condition to only replicate there.
@@ -116,6 +117,7 @@ void AMultiplayerCharacter::BeginPlay()
 	}
 
 	UpdateHUDHealth();
+	UpdateHUDShield();
 
 	if (AttachedGrenade)
 	{
@@ -620,9 +622,26 @@ void AMultiplayerCharacter::RecieveDamage(AActor* DamagedActor, float Damage, co
 {
 	if (bIsEliminated) return; // Should not recieve damage if already eliminated
 
-	Health = FMath::Clamp(Health - Damage, 0.f, MaxHealth);
+	float DamageToHealth = Damage; // How much we will be subtracting from player's actual health;
+	if (Shield > 0.f)
+	{
+		if (Shield >= Damage)
+		{
+			Shield = FMath::Clamp(Shield - Damage, 0.f, MaxShield);
+			DamageToHealth = 0.f;
+		}
+		else
+		{
+			DamageToHealth = FMath::Clamp(DamageToHealth - Shield, 0.f, Damage);
+			Shield = 0.f;
+		}
+	}
+
+	Health = FMath::Clamp(Health - DamageToHealth, 0.f, MaxHealth);
+
 	// On Server
 	UpdateHUDHealth();
+	UpdateHUDShield();
 	PlayHitReactMontage(); 
 
 	// Elimination will be handled in the GameMode
@@ -644,6 +663,15 @@ void AMultiplayerCharacter::UpdateHUDHealth()
 	if (MPPlayerController)
 	{
 		MPPlayerController->SetHUDHealthStats(Health, MaxHealth);
+	}
+}
+
+void AMultiplayerCharacter::UpdateHUDShield()
+{
+	MPPlayerController = Cast<AMPPlayerController>(Controller);
+	if (MPPlayerController)
+	{
+		MPPlayerController->SetHUDShieldStats(Shield, MaxShield);
 	}
 }
 
@@ -825,6 +853,18 @@ void AMultiplayerCharacter::OnRep_Health(float PreviousHealth)
 	if (PreviousHealth > Health)
 	{
 		PlayHitReactMontage(); 
+	}
+}
+
+void AMultiplayerCharacter::OnRep_Shield(float PreviousShield)
+{
+	// Update Shield Stats
+	UpdateHUDShield();
+
+	// Only play hitreact if character shield decreased
+	if (PreviousShield > Shield)
+	{
+		PlayHitReactMontage();
 	}
 }
 

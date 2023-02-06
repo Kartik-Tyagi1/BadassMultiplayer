@@ -72,9 +72,31 @@ void AMPPlayerController::SetHUDHealthStats(float Health, float MaxHealth)
 	}
 	else
 	{
-		bInitializeCharacterOverlay = true;
+		bInitializeHealth = true;
 		HUDHealth = Health;
 		HUDMaxHealth = MaxHealth;
+	}
+}
+
+void AMPPlayerController::SetHUDShieldStats(float Shield, float MaxShield)
+{
+	BadassHUD = BadassHUD == nullptr ? Cast<ABadassHUD>(GetHUD()) : BadassHUD;
+
+	bool bIsHUDValid = BadassHUD && BadassHUD->CharacterOverlay &&
+		BadassHUD->CharacterOverlay->ShieldBar && BadassHUD->CharacterOverlay->ShieldText;
+
+	if (bIsHUDValid)
+	{
+		const float ShieldPercent = Shield / MaxShield;
+		BadassHUD->CharacterOverlay->ShieldBar->SetPercent(ShieldPercent);
+		FString ShieldTextString = FString::Printf(TEXT("%d/%d"), FMath::CeilToInt(Shield), FMath::CeilToInt(MaxShield));
+		BadassHUD->CharacterOverlay->ShieldText->SetText(FText::FromString(ShieldTextString));
+	}
+	else
+	{
+		bInitializeShield = true;
+		HUDShield = Shield;
+		HUDMaxShield = MaxShield;
 	}
 }
 
@@ -92,7 +114,7 @@ void AMPPlayerController::SetHUDKillCount(float Kills)
 	}
 	else
 	{
-		bInitializeCharacterOverlay = true;
+		bInitializeKills = true;
 		HUDKills = Kills;
 	}
 
@@ -112,7 +134,7 @@ void AMPPlayerController::SetHUDDefeats(int32 Defeats)
 	}
 	else
 	{
-		bInitializeCharacterOverlay = true;
+		bInitializeDeaths = true;
 		HUDDeaths = Defeats;
 	}
 }
@@ -238,6 +260,7 @@ void AMPPlayerController::SetHUDGrenades(int32 Grenades)
 	}
 	else
 	{
+		bInitializeGrenades = true;
 		HUDGrenades = Grenades;
 	}
 }
@@ -492,14 +515,16 @@ void AMPPlayerController::PollInit()
 		if (BadassHUD && BadassHUD->CharacterOverlay)
 		{
 			CharacterOverlay = BadassHUD->CharacterOverlay;
-			SetHUDHealthStats(HUDHealth, HUDMaxHealth);
-			SetHUDKillCount(HUDKills);
-			SetHUDDefeats(HUDDeaths);
+			
+			if (bInitializeHealth) SetHUDHealthStats(HUDHealth, HUDMaxHealth);
+			if (bInitializeShield) SetHUDShieldStats(HUDShield, HUDMaxShield);
+			if (bInitializeKills) SetHUDKillCount(HUDKills);
+			if (bInitializeDeaths) SetHUDDefeats(HUDDeaths);
 
 			AMultiplayerCharacter* MC = Cast<AMultiplayerCharacter>(GetPawn());
 			if (MC && MC->GetCombatComponent())
 			{
-				SetHUDGrenades(MC->GetCombatComponent()->GetGrenades());
+				if (bInitializeGrenades) SetHUDGrenades(MC->GetCombatComponent()->GetGrenades());
 			}
 		}
 	}

@@ -174,6 +174,16 @@ private:
 	UFUNCTION()
 	void OnRep_Health(float PreviousHealth);
 
+	/*********************** PLAYER SHIELD *************************/
+	UPROPERTY(EditAnywhere, Category = "Player Stats")
+	float MaxShield = 100.f;
+
+	UPROPERTY(ReplicatedUsing = OnRep_Shield, VisibleAnywhere, Category = "Player Stats")
+	float Shield = 100.f;
+
+	UFUNCTION()
+	void OnRep_Shield(float PreviousShield);
+
 	/*********************** ELIMINATION AND RESPAWN *************************/
 	bool bIsEliminated = false;
 
@@ -248,6 +258,7 @@ public:
 	void PlayReloadMontage();
 	void PlayThrowGrenadeMontage();
 	void UpdateHUDHealth();
+	void UpdateHUDShield();
 
 	// Server Eliminination Stuff
 	void Eliminated(APlayerController* AttackerController);
