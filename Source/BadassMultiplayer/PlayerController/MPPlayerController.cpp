@@ -67,7 +67,7 @@ void AMPPlayerController::SetHUDHealthStats(float Health, float MaxHealth)
 	{
 		const float HealthPercent = Health / MaxHealth;
 		BadassHUD->CharacterOverlay->HealthBar->SetPercent(HealthPercent);
-		FString HealthTextString = FString::Printf(TEXT("%d/%d"), FMath::CeilToInt(Health), FMath::CeilToInt(MaxHealth));
+		FString HealthTextString = FString::Printf(TEXT("%d/%d"), FMath::FloorToInt(Health), FMath::FloorToInt(MaxHealth));
 		BadassHUD->CharacterOverlay->HealthText->SetText(FText::FromString(HealthTextString));
 	}
 	else
@@ -89,7 +89,7 @@ void AMPPlayerController::SetHUDShieldStats(float Shield, float MaxShield)
 	{
 		const float ShieldPercent = Shield / MaxShield;
 		BadassHUD->CharacterOverlay->ShieldBar->SetPercent(ShieldPercent);
-		FString ShieldTextString = FString::Printf(TEXT("%d/%d"), FMath::CeilToInt(Shield), FMath::CeilToInt(MaxShield));
+		FString ShieldTextString = FString::Printf(TEXT("%d/%d"), FMath::FloorToInt(Shield), FMath::FloorToInt(MaxShield));
 		BadassHUD->CharacterOverlay->ShieldText->SetText(FText::FromString(ShieldTextString));
 	}
 	else
