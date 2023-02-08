@@ -59,7 +59,10 @@ private:
 	UPROPERTY(EditAnywhere)
 	UStaticMeshComponent* PickupMesh;
 
-
+	// Delay The Overlap Bind for a bit so event does not occur is character is standing on pickup spawn point
+	FTimerHandle BindOverlapTimer;
+	float BindOverlapTime = 0.25f;
+	void EndBindOverlapTimer();
 
 public:	
 	

@@ -141,6 +141,7 @@ void UCombatComponent::UpdateCarriedAmmo()
 	Controller = Controller == nullptr ? Cast<AMPPlayerController>(Character->Controller) : Controller;
 	if (Controller)
 	{
+		Controller->SetHUDGrenades(Grenades);
 		Controller->SetHUDCarriedAmmo(CarriedAmmo);
 		Controller->SetHUDWeaponType(EquippedWeapon->GetWeaponType());
 	}
@@ -446,10 +447,17 @@ void UCombatComponent::ServerLaunchGrenade_Implementation(const FVector_NetQuant
 
 void UCombatComponent::PickupAmmo(EWeaponType WeaponType, int32 AmmoAmount)
 {
+	if (WeaponType == EWeaponType::EWT_Grenade)
+	{
+		Grenades = FMath::Clamp(Grenades + AmmoAmount, 0, MaxGrenades);
+		UpdateCarriedAmmo();
+	}
+
 	if (CarriedAmmoMap.Contains(WeaponType))
 	{
 		CarriedAmmoMap[WeaponType] = FMath::Clamp(CarriedAmmoMap[WeaponType] + AmmoAmount, 0, MaxCarriedAmmo);
 		UpdateCarriedAmmo();
+
 	}
 
 	if (EquippedWeapon && EquippedWeapon->IsWeaponEmpty() && EquippedWeapon->GetWeaponType() == WeaponType)
