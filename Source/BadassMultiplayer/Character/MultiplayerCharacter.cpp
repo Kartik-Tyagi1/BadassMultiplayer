@@ -280,15 +280,7 @@ void AMultiplayerCharacter::EquipButtonPressed()
 	// Weapon Equipping should be handled by server so that a proper record of the game is kept
 	if (Combat)
 	{
-		if (HasAuthority())
-		{
-			Combat->EquipWeapon(OverlappingWeapon);
-		}
-		else
-		{
-			// Called for clients
-			ServerEquipButtonPressed();
-		}
+		ServerEquipButtonPressed();
 	}
 }
 

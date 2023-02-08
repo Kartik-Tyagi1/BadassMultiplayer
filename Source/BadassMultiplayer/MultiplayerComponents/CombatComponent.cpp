@@ -28,6 +28,7 @@ void UCombatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 
 	// We want this data to replicate everywhere so that the animation is shown on server and clients. So no need for condition
 	DOREPLIFETIME(UCombatComponent, EquippedWeapon);
+	DOREPLIFETIME(UCombatComponent, SecondaryWeapon);
 	DOREPLIFETIME(UCombatComponent, bIsAiming);
 	DOREPLIFETIME_CONDITION(UCombatComponent, CarriedAmmo, COND_OwnerOnly);
 	DOREPLIFETIME(UCombatComponent, CombatState);
@@ -74,11 +75,29 @@ void UCombatComponent::EquipWeapon(AWeapon* WeaponToEquip)
 {
 	if (Character == nullptr || WeaponToEquip == nullptr) return;
 	if (CombatState != ECombatState::ECS_Unoccupied) return;
+	
+	if (EquippedWeapon != nullptr && SecondaryWeapon == nullptr)
+	{
+		EquipSecondaryWeapon(WeaponToEquip);
+	}
+	else
+	{
+		EquipPrimaryWeapon(WeaponToEquip);
+	}
 
+
+	Character->GetCharacterMovement()->bOrientRotationToMovement = false;
+	Character->bUseControllerRotationYaw = true;
+}
+
+void UCombatComponent::EquipPrimaryWeapon(AWeapon* WeaponToEquip)
+{
+	if (WeaponToEquip == nullptr) return;
 	DropEquippedWeapon();
 
 	EquippedWeapon = WeaponToEquip;
 	EquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
+	
 
 	AttachActorToRightHand(EquippedWeapon);
 
@@ -87,11 +106,66 @@ void UCombatComponent::EquipWeapon(AWeapon* WeaponToEquip)
 	EquippedWeapon->SetHUDAmmo();
 
 	UpdateCarriedAmmo();
-	PlayWeaponEquipSound();
+	PlayWeaponEquipSound(WeaponToEquip);
 	ReloadWeaponIfEmpty();
 
-	Character->GetCharacterMovement()->bOrientRotationToMovement = false;
-	Character->bUseControllerRotationYaw = true;
+	EquippedWeapon->EnableCustomDepth(false);
+}
+
+void UCombatComponent::EquipSecondaryWeapon(AWeapon* WeaponToEquip)
+{
+	if (WeaponToEquip == nullptr) return;
+
+	SecondaryWeapon = WeaponToEquip;
+	SecondaryWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
+	AttachActorToBackpack(WeaponToEquip);
+	SecondaryWeapon->SetOwner(Character);
+	PlayWeaponEquipSound(WeaponToEquip);
+	if (SecondaryWeapon->GetWeaponMesh())
+	{
+		SecondaryWeapon->GetWeaponMesh()->SetCustomDepthStencilValue(CUSTOM_DEPTH_TAN);
+		SecondaryWeapon->GetWeaponMesh()->MarkRenderStateDirty();
+	}
+}
+
+void UCombatComponent::OnRep_EquippedWeapon()
+{
+	if (EquippedWeapon && Character)
+	{
+		Controller = Controller == nullptr ? Cast<AMPPlayerController>(Character->Controller) : Controller;
+		if (Controller)
+		{
+			Controller->SetHUDWeaponType(EquippedWeapon->GetWeaponType());
+		}
+
+		// This needs to be done here in case the weapon state isn't set. Calling it here makes the variable replicate across clients before the weapon is attached
+		EquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
+		AttachActorToRightHand(EquippedWeapon);
+
+		PlayWeaponEquipSound(EquippedWeapon);
+
+		EquippedWeapon->EnableCustomDepth(false);
+
+		Character->GetCharacterMovement()->bOrientRotationToMovement = false;
+		Character->bUseControllerRotationYaw = true;
+	}
+}
+
+void UCombatComponent::OnRep_SecondaryWeapon()
+{
+	if (SecondaryWeapon && Character)
+	{
+		SecondaryWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
+		AttachActorToBackpack(SecondaryWeapon);
+		PlayWeaponEquipSound(SecondaryWeapon);
+
+		if (SecondaryWeapon->GetWeaponMesh())
+		{
+			SecondaryWeapon->GetWeaponMesh()->SetCustomDepthStencilValue(CUSTOM_DEPTH_TAN);
+			SecondaryWeapon->GetWeaponMesh()->MarkRenderStateDirty();
+		}
+
+	}
 }
 
 void UCombatComponent::DropEquippedWeapon()
@@ -129,6 +203,41 @@ void UCombatComponent::AttachActorToLeftHand(AActor* ActorToAttach)
 	}
 }
 
+void UCombatComponent::AttachActorToBackpack(AActor* ActorToAttach)
+{
+	if (Character == nullptr || Character->GetMesh() == nullptr || ActorToAttach == nullptr) return;
+
+	FName BackpackSocketName;
+
+	AWeapon* WeaponToAttach = Cast<AWeapon>(ActorToAttach);
+	if (WeaponToAttach)
+	{
+		const EWeaponType WType = WeaponToAttach->GetWeaponType();
+		if (WType == EWeaponType::EWT_AssaultRifle || WType == EWeaponType::EWT_Shotgun || WType == EWeaponType::EWT_GrenadeLauncher)
+		{
+			BackpackSocketName = FName("BackpackMediumWeaponSocket");
+		}
+		else if (WType == EWeaponType::EWT_Pistol || WType == EWeaponType::EWT_SMG)
+		{
+			BackpackSocketName = FName("BackpackSmallWeaponSocket");
+		}
+		else if (WType == EWeaponType::EWT_SniperRifle)
+		{
+			BackpackSocketName = FName("BackpackSniperWeaponSocket");
+		}
+		else if (WType == EWeaponType::EWT_RocketLauncher)
+		{
+			BackpackSocketName = FName("BackpackRocketWeaponSocket");
+		}
+	}
+
+	const USkeletalMeshSocket* BackpackSocket = Character->GetMesh()->GetSocketByName(BackpackSocketName);
+	if (BackpackSocket)
+	{
+		BackpackSocket->AttachActor(ActorToAttach, Character->GetMesh());
+	}
+}
+
 void UCombatComponent::UpdateCarriedAmmo()
 {
 	if (EquippedWeapon == nullptr) return;
@@ -147,11 +256,11 @@ void UCombatComponent::UpdateCarriedAmmo()
 	}
 }
 
-void UCombatComponent::PlayWeaponEquipSound()
+void UCombatComponent::PlayWeaponEquipSound(AWeapon* WeaponToEquip)
 {
-	if (Character && EquippedWeapon && EquippedWeapon->WeaponEquipSound)
+	if (Character && WeaponToEquip && WeaponToEquip->WeaponEquipSound)
 	{
-		UGameplayStatics::PlaySoundAtLocation(this, EquippedWeapon->WeaponEquipSound, Character->GetActorLocation());
+		UGameplayStatics::PlaySoundAtLocation(this, WeaponToEquip->WeaponEquipSound, Character->GetActorLocation());
 	}
 }
 
@@ -160,27 +269,6 @@ void UCombatComponent::ReloadWeaponIfEmpty()
 	if (EquippedWeapon && EquippedWeapon->IsWeaponEmpty())
 	{
 		Reload();
-	}
-}
-
-void UCombatComponent::OnRep_EquippedWeapon()
-{
-	if (EquippedWeapon && Character)
-	{
-		Controller = Controller == nullptr ? Cast<AMPPlayerController>(Character->Controller) : Controller;
-		if (Controller)
-		{
-			Controller->SetHUDWeaponType(EquippedWeapon->GetWeaponType());
-		}
-
-		// This needs to be done here in case the weapon state isn't set. Calling it here makes the variable replicate across clients before the weapon is attached
-		EquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
-		AttachActorToRightHand(EquippedWeapon);
-
-		PlayWeaponEquipSound();
-
-		Character->GetCharacterMovement()->bOrientRotationToMovement = false;
-		Character->bUseControllerRotationYaw = true;
 	}
 }
 
@@ -352,6 +440,92 @@ int32 UCombatComponent::CalculateReloadAmount()
 	return 0;
 }
 
+void UCombatComponent::PickupAmmo(EWeaponType WeaponType, int32 AmmoAmount)
+{
+	if (WeaponType == EWeaponType::EWT_Grenade)
+	{
+		Grenades = FMath::Clamp(Grenades + AmmoAmount, 0, MaxGrenades);
+		UpdateCarriedAmmo();
+	}
+
+	if (CarriedAmmoMap.Contains(WeaponType))
+	{
+		CarriedAmmoMap[WeaponType] = FMath::Clamp(CarriedAmmoMap[WeaponType] + AmmoAmount, 0, MaxCarriedAmmo);
+		UpdateCarriedAmmo();
+
+	}
+
+	if (EquippedWeapon && EquippedWeapon->IsWeaponEmpty() && EquippedWeapon->GetWeaponType() == WeaponType)
+	{
+		Reload();
+	}
+}
+
+void UCombatComponent::UpdateAmmoValues()
+{
+	if (Character == nullptr || EquippedWeapon == nullptr) return;
+
+	// Calculate Amount to Reload and update the ammo map
+	int32 AmountToReload = CalculateReloadAmount();
+	if (CarriedAmmoMap.Contains(EquippedWeapon->GetWeaponType()))
+	{
+		CarriedAmmoMap[EquippedWeapon->GetWeaponType()] -= AmountToReload;
+		CarriedAmmo = CarriedAmmoMap[EquippedWeapon->GetWeaponType()];
+	}
+
+	// Update the amount of ammo in the mag of the weapon
+	EquippedWeapon->AddAmmo(AmountToReload);
+
+	// Update the HUD for the new carried ammo amount
+	Controller = Controller == nullptr ? Cast<AMPPlayerController>(Character->Controller) : Controller;
+	if (Controller)
+	{
+		Controller->SetHUDCarriedAmmo(CarriedAmmo);
+	}
+}
+
+void UCombatComponent::UpdateShotgunAmmoValues()
+{
+	if (Character == nullptr || EquippedWeapon == nullptr) return;
+
+	if (CarriedAmmoMap.Contains(EquippedWeapon->GetWeaponType()))
+	{
+		CarriedAmmoMap[EquippedWeapon->GetWeaponType()] -= 1;
+		CarriedAmmo = CarriedAmmoMap[EquippedWeapon->GetWeaponType()];
+	}
+
+	// Update the amount of ammo in the mag of the weapon
+	EquippedWeapon->AddAmmo(1);
+
+	// Update the HUD for the new carried ammo amount
+	Controller = Controller == nullptr ? Cast<AMPPlayerController>(Character->Controller) : Controller;
+	if (Controller)
+	{
+		Controller->SetHUDCarriedAmmo(CarriedAmmo);
+	}
+
+	bCanFire = true;
+
+	// End the shotgun reload notifies if the shotgun is full and jump to finishreloading notify
+	if (EquippedWeapon->IsWeaponFull() || CarriedAmmo == 0)
+	{
+		JumpToShotgunReloadEnd();
+	}
+}
+
+void UCombatComponent::JumpToShotgunReloadEnd()
+{
+	// Dont play any animation if the character doesn't have a weapon
+	if (EquippedWeapon == nullptr) return;
+
+	UAnimInstance* AnimInstance = Character->GetMesh()->GetAnimInstance();
+	if (AnimInstance && Character->GetReloadMontage())
+	{
+		AnimInstance->Montage_Play(Character->GetReloadMontage());
+		AnimInstance->Montage_JumpToSection(FName("ShotgunEnd"));
+	}
+}
+
 // Called Locally On Client
 void UCombatComponent::ThrowGrenade()
 {
@@ -442,92 +616,6 @@ void UCombatComponent::ServerLaunchGrenade_Implementation(const FVector_NetQuant
 		SpawnParams.Owner = Character;
 		SpawnParams.Instigator = Character;
 		GetWorld()->SpawnActor<AProjectile>(GrenadeClass, StartingGrenadeLocation, ToTarget.Rotation(), SpawnParams);
-	}
-}
-
-void UCombatComponent::PickupAmmo(EWeaponType WeaponType, int32 AmmoAmount)
-{
-	if (WeaponType == EWeaponType::EWT_Grenade)
-	{
-		Grenades = FMath::Clamp(Grenades + AmmoAmount, 0, MaxGrenades);
-		UpdateCarriedAmmo();
-	}
-
-	if (CarriedAmmoMap.Contains(WeaponType))
-	{
-		CarriedAmmoMap[WeaponType] = FMath::Clamp(CarriedAmmoMap[WeaponType] + AmmoAmount, 0, MaxCarriedAmmo);
-		UpdateCarriedAmmo();
-
-	}
-
-	if (EquippedWeapon && EquippedWeapon->IsWeaponEmpty() && EquippedWeapon->GetWeaponType() == WeaponType)
-	{
-		Reload();
-	}
-}
-
-void UCombatComponent::UpdateAmmoValues()
-{
-	if (Character == nullptr || EquippedWeapon == nullptr) return;
-
-	// Calculate Amount to Reload and update the ammo map
-	int32 AmountToReload = CalculateReloadAmount();
-	if (CarriedAmmoMap.Contains(EquippedWeapon->GetWeaponType()))
-	{
-		CarriedAmmoMap[EquippedWeapon->GetWeaponType()] -= AmountToReload;
-		CarriedAmmo = CarriedAmmoMap[EquippedWeapon->GetWeaponType()];
-	}
-
-	// Update the amount of ammo in the mag of the weapon
-	EquippedWeapon->AddAmmo(AmountToReload);
-
-	// Update the HUD for the new carried ammo amount
-	Controller = Controller == nullptr ? Cast<AMPPlayerController>(Character->Controller) : Controller;
-	if (Controller)
-	{
-		Controller->SetHUDCarriedAmmo(CarriedAmmo);
-	}
-}
-
-void UCombatComponent::UpdateShotgunAmmoValues()
-{
-	if (Character == nullptr || EquippedWeapon == nullptr) return;
-
-	if (CarriedAmmoMap.Contains(EquippedWeapon->GetWeaponType()))
-	{
-		CarriedAmmoMap[EquippedWeapon->GetWeaponType()] -= 1;
-		CarriedAmmo = CarriedAmmoMap[EquippedWeapon->GetWeaponType()];
-	}
-
-	// Update the amount of ammo in the mag of the weapon
-	EquippedWeapon->AddAmmo(1);
-
-	// Update the HUD for the new carried ammo amount
-	Controller = Controller == nullptr ? Cast<AMPPlayerController>(Character->Controller) : Controller;
-	if (Controller)
-	{
-		Controller->SetHUDCarriedAmmo(CarriedAmmo);
-	}
-
-	bCanFire = true;
-		
-	// End the shotgun reload notifies if the shotgun is full and jump to finishreloading notify
-	if (EquippedWeapon->IsWeaponFull() || CarriedAmmo == 0)
-	{
-		JumpToShotgunReloadEnd();
-	}
-}
-
-void UCombatComponent::JumpToShotgunReloadEnd()
-{
-	// Dont play any animation if the character doesn't have a weapon
-	if (EquippedWeapon == nullptr) return;
-
-	UAnimInstance* AnimInstance = Character->GetMesh()->GetAnimInstance();
-	if (AnimInstance && Character->GetReloadMontage())
-	{
-		AnimInstance->Montage_Play(Character->GetReloadMontage());
-		AnimInstance->Montage_JumpToSection(FName("ShotgunEnd"));
 	}
 }
 
