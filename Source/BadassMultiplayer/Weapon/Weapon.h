@@ -136,31 +136,31 @@ public:
 
 	/* Textures for the weapon crosshairs. These are individual so we can make them dynamic */
 	UPROPERTY(EditAnywhere, Category = Crosshairs)
-		UTexture2D* CrosshairCenter;
+	UTexture2D* CrosshairCenter;
 
 	UPROPERTY(EditAnywhere, Category = Crosshairs)
-		UTexture2D* CrosshairTop;
+	UTexture2D* CrosshairTop;
 
 	UPROPERTY(EditAnywhere, Category = Crosshairs)
-		UTexture2D* CrosshairBottom;
+	UTexture2D* CrosshairBottom;
 
 	UPROPERTY(EditAnywhere, Category = Crosshairs)
-		UTexture2D* CrosshairLeft;
+	UTexture2D* CrosshairLeft;
 
 	UPROPERTY(EditAnywhere, Category = Crosshairs)
-		UTexture2D* CrosshairRight;
+	UTexture2D* CrosshairRight;
 
 	// Delay for automatic fire
 	UPROPERTY(EditAnywhere, Category = Combat)
-		float FireDelay = 0.15f;
+	float FireDelay = 0.15f;
 
 	// True is weapon is an automatic weapon
 	UPROPERTY(EditAnywhere, Category = Combat)
-		bool bIsAutomatic = true;
+	bool bIsAutomatic = true;
 
 	UPROPERTY(EditAnywhere, Category = "Weapon Properties")
-		USoundCue* WeaponEquipSound;
+	USoundCue* WeaponEquipSound;
 
-
+	bool bDestroyWeapon = false;
 
 };

@@ -102,6 +102,7 @@ void AMultiplayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>
 void AMultiplayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+	SpawnDefaultWeapon();
 	StartingAimRotation = GetBaseAimRotation();	
 
 	if (HasAuthority())
@@ -118,6 +119,7 @@ void AMultiplayerCharacter::BeginPlay()
 
 	UpdateHUDHealth();
 	UpdateHUDShield();
+	UpdateHUDAmmo();
 
 	if (AttachedGrenade)
 	{
@@ -675,6 +677,16 @@ void AMultiplayerCharacter::UpdateHUDShield()
 	}
 }
 
+void AMultiplayerCharacter::UpdateHUDAmmo()
+{
+	MPPlayerController = Cast<AMPPlayerController>(Controller);
+	if (MPPlayerController && Combat && Combat->EquippedWeapon)
+	{
+		MPPlayerController->SetHUDCarriedAmmo(Combat->CarriedAmmo);
+		MPPlayerController->SetHUDWeaponAmmo(Combat->EquippedWeapon->GetAmmo());
+	}
+}
+
 void AMultiplayerCharacter::Destroyed()
 {
 	Super::Destroyed();
@@ -733,7 +745,14 @@ void AMultiplayerCharacter::MulticastEliminated_Implementation(const FString& At
 
 	if (Combat && Combat->EquippedWeapon)
 	{
-		Combat->EquippedWeapon->DropWeapon();
+		if (Combat->EquippedWeapon->bDestroyWeapon)
+		{
+			Combat->EquippedWeapon->Destroy();
+		}
+		else
+		{
+			Combat->EquippedWeapon->DropWeapon();
+		}
 	}
 
 	FVector SpawnPoint(GetActorLocation().X, GetActorLocation().Y, GetActorLocation().Z + 200);
@@ -890,6 +909,22 @@ ECombatState AMultiplayerCharacter::GetCombatState() const
 {
 	if (Combat == nullptr) return ECombatState::ECS_MAX;
 	return Combat->CombatState;
+}
+
+void AMultiplayerCharacter::SpawnDefaultWeapon()
+{
+	ABamGameMode* BamGameMode = Cast<ABamGameMode>(UGameplayStatics::GetGameMode(this));
+	// GetGameMode returns null if not on the server
+	// Gaurantees we are in the MultiplayerMap since thats the only one with BamGameMode
+	if (BamGameMode && !bIsEliminated && DefaultWeaponClass)
+	{
+		AWeapon* StartingWeapon = GetWorld()->SpawnActor<AWeapon>(DefaultWeaponClass);
+		if (StartingWeapon && Combat)
+		{
+			StartingWeapon->bDestroyWeapon = true;
+			Combat->EquipWeapon(StartingWeapon);
+		}
+	}
 }
 
 

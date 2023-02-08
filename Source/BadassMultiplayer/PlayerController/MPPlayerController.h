@@ -94,20 +94,29 @@ private:
 	UFUNCTION()
 	void OnRep_MatchState();
 	
+	/* Booleans to determine if the values need to be inititalized when the character overlay is valid */
 	bool bInitializeHealth = false;
 	bool bInitializeShield = false;
 	bool bInitializeKills = false;
 	bool bInitializeDeaths = false;
 	bool bInitializeGrenades = false;
+	bool bInitializeWeaponAmmo = false;
+	bool bInitializeCarriedAmmo = false;
 
 	/* Cached values that will be used to initialize the HUD */
 	float HUDHealth;
 	float HUDMaxHealth;
+
 	float HUDShield;
 	float HUDMaxShield;
+
 	float HUDKills;
 	int32 HUDDeaths;
+
 	int32 HUDGrenades;
+
+	int32 HUDWeaponAmmo;
+	int32 HUDCarriedAmmo;
 
 
 public: 

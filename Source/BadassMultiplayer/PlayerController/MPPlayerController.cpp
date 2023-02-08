@@ -151,6 +151,11 @@ void AMPPlayerController::SetHUDWeaponAmmo(int32 Ammo)
 		FString AmmoString = FString::Printf(TEXT("%d"), Ammo);
 		BadassHUD->CharacterOverlay->WeaponAmmoAmount->SetText(FText::FromString(AmmoString));
 	}
+	else
+	{
+		bInitializeWeaponAmmo = true;
+		HUDWeaponAmmo = Ammo;
+	}
 }
 
 void AMPPlayerController::SetHUDCarriedAmmo(int32 CarriedAmmo)
@@ -164,6 +169,11 @@ void AMPPlayerController::SetHUDCarriedAmmo(int32 CarriedAmmo)
 	{
 		FString CarriedAmmoString = FString::Printf(TEXT("%d"), CarriedAmmo);
 		BadassHUD->CharacterOverlay->CarriedAmmoAmount->SetText(FText::FromString(CarriedAmmoString));
+	}
+	else
+	{
+		bInitializeCarriedAmmo = true;
+		HUDCarriedAmmo = CarriedAmmo;
 	}
 }
 
@@ -520,6 +530,8 @@ void AMPPlayerController::PollInit()
 			if (bInitializeShield) SetHUDShieldStats(HUDShield, HUDMaxShield);
 			if (bInitializeKills) SetHUDKillCount(HUDKills);
 			if (bInitializeDeaths) SetHUDDefeats(HUDDeaths);
+			if (bInitializeWeaponAmmo) SetHUDWeaponAmmo(HUDWeaponAmmo);
+			if (bInitializeCarriedAmmo) SetHUDCarriedAmmo(HUDCarriedAmmo);
 
 			AMultiplayerCharacter* MC = Cast<AMultiplayerCharacter>(GetPawn());
 			if (MC && MC->GetCombatComponent())

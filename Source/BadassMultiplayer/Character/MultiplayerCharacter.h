@@ -119,6 +119,9 @@ private:
 	UFUNCTION(Server, Reliable)
 	void ServerEquipButtonPressed();
 
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<AWeapon> DefaultWeaponClass;
+
 	/*********************** Aim offset yaw | pitch calculations | Turn in Place *************************/
 	float AO_Yaw;
 	float AO_Pitch;
@@ -262,6 +265,7 @@ public:
 	void PlayThrowGrenadeMontage();
 	void UpdateHUDHealth();
 	void UpdateHUDShield();
+	void UpdateHUDAmmo();
 
 	// Server Eliminination Stuff
 	void Eliminated(APlayerController* AttackerController);
@@ -275,4 +279,6 @@ public:
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void ShowSniperScopeWidget(bool bShowScope);
+
+	void SpawnDefaultWeapon();
 };
