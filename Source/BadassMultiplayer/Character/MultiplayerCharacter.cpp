@@ -526,7 +526,6 @@ void AMultiplayerCharacter::RotateInPlace(float DeltaTime)
 	}
 }
 
-
 void AMultiplayerCharacter::PlayFireMontage(bool bIsAiming)
 {
 	// Dont play any animation if the character doesn't have a weapon
@@ -743,17 +742,7 @@ void AMultiplayerCharacter::MulticastEliminated_Implementation(const FString& At
 {
 	bIsEliminated = true;
 
-	if (Combat && Combat->EquippedWeapon)
-	{
-		if (Combat->EquippedWeapon->bDestroyWeapon)
-		{
-			Combat->EquippedWeapon->Destroy();
-		}
-		else
-		{
-			Combat->EquippedWeapon->DropWeapon();
-		}
-	}
+	DropOrDestroyWeapons();
 
 	FVector SpawnPoint(GetActorLocation().X, GetActorLocation().Y, GetActorLocation().Z + 200);
 	FRotator SpawnRotation = GetActorRotation();
@@ -817,6 +806,36 @@ void AMultiplayerCharacter::MulticastEliminated_Implementation(const FString& At
 	if (bHideSniperScope)
 	{
 		ShowSniperScopeWidget(false);
+	}
+}
+
+void AMultiplayerCharacter::DropOrDestroyWeapon(AWeapon* Weapon)
+{
+	if (Weapon)
+	{
+		if (Weapon->bDestroyWeapon)
+		{
+			Weapon->Destroy();
+		}
+		else
+		{
+			Weapon->DropWeapon();
+		}
+	}
+}
+
+void AMultiplayerCharacter::DropOrDestroyWeapons()
+{
+	if (Combat)
+	{
+		if (Combat->EquippedWeapon)
+		{
+			DropOrDestroyWeapon(Combat->EquippedWeapon);
+		}
+		if (Combat->SecondaryWeapon)
+		{
+			DropOrDestroyWeapon(Combat->SecondaryWeapon);
+		}
 	}
 }
 
