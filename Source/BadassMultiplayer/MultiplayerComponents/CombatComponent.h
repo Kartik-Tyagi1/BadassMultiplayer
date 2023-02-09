@@ -23,8 +23,8 @@ class BADASSMULTIPLAYER_API UCombatComponent : public UActorComponent
 
 public:	
 	UCombatComponent();
+
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-	void EquipWeapon(AWeapon* WeaponToEquip);
 
 	// Allows AMultiplayerCharacter to have full access to everything in the UCombatComponent (USE THIS VERY CAREFULLY)
 	friend class AMultiplayerCharacter;
@@ -212,6 +212,11 @@ private:
 	void UpdateShotgunAmmoValues();
 
 public:	
+	void EquipWeapon(AWeapon* WeaponToEquip);
+
+	// Swaps Equipped Weapon with Secondary Weapon
+	void SwapWeapons();
+
 	void Reload();
 
 	UFUNCTION(BlueprintCallable)
@@ -237,5 +242,5 @@ public:
 
 	void SetSpeeds(float WalkSpeedAmount) { BaseWalkSpeed = WalkSpeedAmount; }
 
-	
+	bool HasTwoWeapons();
 };

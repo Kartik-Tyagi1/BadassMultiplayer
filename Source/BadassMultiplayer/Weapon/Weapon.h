@@ -20,11 +20,12 @@ class USoundCue;
 UENUM(BlueprintType)
 enum class EWeaponState : uint8
 {
-	EWS_Initial		UMETA(DisplayName = "Inital State"),
-	EWS_Equipped	UMETA(DisplayName = "Equipped State"),
-	EWS_Dropped		UMETA(DisplayName = "Dropped State"),
+	EWS_Initial				UMETA(DisplayName = "Inital State"),
+	EWS_Equipped			UMETA(DisplayName = "Equipped State"),
+	EWS_EquippedSecondary	UMETA(DisplayName = "Equipped Secondary State"),
+	EWS_Dropped				UMETA(DisplayName = "Dropped State"),
 
-	EWS_MAX			UMETA(DisplayName = "DefaultMAX")
+	EWS_MAX					UMETA(DisplayName = "DefaultMAX")
 };
 
 UCLASS()
@@ -67,6 +68,11 @@ protected:
 		AActor* OtherActor,
 		UPrimitiveComponent* OtherComp,
 		int32 OtherBodyIndex);
+
+	virtual void OnWeaponStateSet();
+	void HandleWeaponStateEquipped();
+	void HandleWeaponStateDropped();
+	void HandleWeaponStateEquippedSecondary();
 
 private:
 	UPROPERTY(VisibleAnywhere, Category = "Weapon Properties")
